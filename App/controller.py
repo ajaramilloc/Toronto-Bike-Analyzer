@@ -23,16 +23,27 @@
 import config as cf
 import model
 import csv
+import sys
 
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
+csv.field_size_limit(2147483647)
 
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
+# -----------------------------------------------------
+# NEW CONTROLLER
+# -----------------------------------------------------
 
-# Inicialización del Catálogo de libros
+def newController():
+    analyzer = model.newAnalyzer()
+    return analyzer
 
-# Funciones para la carga de datos
+# -----------------------------------------------------
+# LOADING DATA FUNCTIONS
+# -----------------------------------------------------
 
-# Funciones de ordenamiento
-
-# Funciones de consulta sobre el catálogo
+def loadData(analyzer):
+    routes_file = cf.data_dir + 'bikeshare-ridership-2021/Bike share ridership 2021-01.csv'
+    input_file = csv.DictReader(open(routes_file, encoding='utf-8'))
+    for route in input_file:
+        model.addRoute(analyzer, route)
+    return analyzer['routes']

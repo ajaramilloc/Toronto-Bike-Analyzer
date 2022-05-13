@@ -26,33 +26,64 @@ import controller
 from DISClib.ADT import list as lt
 assert cf
 
+# -----------------------------------------------------
+# NEW CONTROLLER
+# -----------------------------------------------------
 
-"""
-La vista se encarga de la interacción con el usuario
-Presenta el menu de opciones y por cada seleccion
-se hace la solicitud al controlador para ejecutar la
-operación solicitada
-"""
+def newController():
+    control = controller.newController()
+    return control
 
 def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("2- Comprar bicicletas para las estaciones con más viajes de origen")
+    print("3- Planear paseos turísticos por la ciudad")
+    print("4- Reconocer los componentes fuertemente conectados")
+    print("5- Planear una ruta rápida para el usuario")
+    print("6- Reportar rutas en un rango de fechas para los usuarios anuales")
+    print("7- Planear el mantenimiento preventivo de bicicleta")
+    print("8- La estación más frecuentada por los visitantes")
 
-catalog = None
+# -----------------------------------------------------
+# GENERIC FUNCTIONS
+# -----------------------------------------------------
+
+# -----------------------------------------------------
+# PRINT FUNCTIONS
+# -----------------------------------------------------
+
+# -----------------------------------------------------
+# LOAD DATA
+# -----------------------------------------------------
 
 """
 Menu principal
 """
 while True:
     printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
+    inputs = input('Select an option to continue: \n')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
-
+        pass
+        
     elif int(inputs[0]) == 2:
         pass
+    
+    elif int(inputs[0]) == 3:
+        pass
 
+    elif int(inputs[0]) == 4:
+        pass
+
+    elif int(inputs[0]) == 5:
+        pass
+        
+    elif int(inputs[0]) == 6:
+        pass
+    
+    elif int(inputs[0]) == 7:
+        pass
+        
     else:
         sys.exit(0)
 sys.exit(0)

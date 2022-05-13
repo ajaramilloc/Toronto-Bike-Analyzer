@@ -26,25 +26,24 @@
 
 
 import config as cf
+from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
 
-"""
-Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
-los mismos.
-"""
+# -----------------------------------------------------
+# NEW ANALYZER
+# -----------------------------------------------------
 
-# Construccion de modelos
+def newAnalyzer():
+    
+    analyzer = {
+        'routes': None
+    }
 
-# Funciones para agregar informacion al catalogo
-
-# Funciones para creacion de datos
-
-# Funciones de consulta
-
-# Funciones utilizadas para comparar elementos dentro de una lista
-
-# Funciones de ordenamiento
+    analyzer['routes'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=35751,
+                                              comparefunction='compareStopIds')
