@@ -42,8 +42,8 @@ def newController():
 # -----------------------------------------------------
 
 def loadData(analyzer):
-    routes_file = cf.data_dir + 'bikeshare-ridership-2021/Bike share ridership 2021-01.csv'
-    input_file = csv.DictReader(open(routes_file, encoding='utf-8'))
-    for route in input_file:
-        model.addRoute(analyzer, route)
-    return analyzer['routes']
+    stops_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-small.csv'
+    input_file = csv.DictReader(open(stops_file, encoding='utf-8'))
+    for stop in input_file:
+        model.addStopConnection(analyzer, stop)
+    

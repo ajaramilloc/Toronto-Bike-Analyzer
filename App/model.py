@@ -24,13 +24,11 @@
  * Dario Correal - Version inicial
  """
 
-
 import config as cf
 from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
-from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
 
 # -----------------------------------------------------
@@ -40,10 +38,45 @@ assert cf
 def newAnalyzer():
     
     analyzer = {
-        'routes': None
+        'connections': None,
+        'stops': None
     }
 
-    analyzer['routes'] = gr.newGraph(datastructure='ADJ_LIST',
+    analyzer['stops'] = mp.newMap(numelements=3575170,
+                                    maptype='PROBING')
+
+    analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
-                                              size=35751,
+                                              size=3575170,
                                               comparefunction='compareStopIds')
+
+    return analyzer
+
+def addStopConnection(analyzer, stop):
+    origin = stop['Start Station Id']
+    destination = stop['End Station Id']
+    cleanTripDuration(origin, destination)
+    addStop(analyzer, origin)
+    addStop(analyzer, destination)
+
+    return analyzer
+
+def addStop(analyzer, stop):
+    if not gr.containsVertex(analyzer['connections'], stop):
+        gr.insertVertex(analyzer['connections'], stop)
+    
+    return analyzer
+
+# -----------------------------------------------------
+# GENERIC FUNCTIONS
+# -----------------------------------------------------
+
+def cleanTripDuration(origin, destination):
+    """
+    En caso de que el archivo tenga un espacio en la
+    distancia, se reemplaza con cero.
+    """
+    if origin['Trip  Duration'] == '':
+        origin['Trip  Duration'] = 0
+    if destination['Trip  Duration'] == '':
+        destination['Trip  Duration'] = 0
