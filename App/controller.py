@@ -42,8 +42,24 @@ def newController():
 # -----------------------------------------------------
 
 def loadData(analyzer):
-    stops_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-small.csv'
-    input_file = csv.DictReader(open(stops_file, encoding='utf-8'))
-    for stop in input_file:
-        model.addStopConnection(analyzer, stop)
+    trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-large.csv'
+    input_file = csv.DictReader(open(trips_file, encoding='utf-8'))
+    count_1 = 0
+    count_2 = 0
+    for trip in input_file:
+        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name']:
+            count_1 += 1
+        else:
+            model.addStopConnection(analyzer, trip)
+            count_2 += 1
+    model.addConnections(analyzer)
+    return(count_1, count_2)
+
+# -----------------------------------------------------
+# REQUIREMENTS FUNCTIONS
+# -----------------------------------------------------
+
+def requirement0(analyzer):
+    return model.requirement0(analyzer)
+    
     

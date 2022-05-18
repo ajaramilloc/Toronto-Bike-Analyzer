@@ -24,6 +24,8 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT import map as mp
+from DISClib.ADT import graph as gr
 assert cf
 
 # -----------------------------------------------------
@@ -57,13 +59,28 @@ def printMenu():
 # LOAD DATA
 # -----------------------------------------------------
 
+def loadData():
+    trips = controller.loadData(control)
+    return trips
+
 """
 Menu principal
 """
 while True:
     printMenu()
     inputs = input('Select an option to continue: \n')
-    if int(inputs[0]) == 1:
+    if int(inputs[0]) == 0:
+        control = newController()
+        print("\nLoading Data....\n")
+        trips = loadData()
+        charge = controller.requirement0(control)
+        print(f'There are {charge[0]} vertices')
+        print(f'There are {charge[1]} edges')
+        print(f'There are {trips[0]} trips with no duration or self-referenced vertex')
+        print(f'Only where charged {trips[1]} trips')
+        print(f'In total are {trips[0] + trips[1]} trips\n')
+        print(gr.getEdge(control['connections'], 'Nassau St / Bellevue Ave', 'Adelaide St W / Strachan Ave'))
+    elif int(inputs[0]) == 1:
         pass
         
     elif int(inputs[0]) == 2:
