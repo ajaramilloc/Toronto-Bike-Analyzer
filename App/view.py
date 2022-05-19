@@ -55,6 +55,9 @@ def printMenu():
 # PRINT FUNCTIONS
 # -----------------------------------------------------
 
+def optionThree(control):
+    print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
+
 # -----------------------------------------------------
 # LOAD DATA
 # -----------------------------------------------------
@@ -79,7 +82,7 @@ while True:
         print(f'There are {trips[0]} trips with no duration or self-referenced vertex')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
-        print(gr.getEdge(control['connections'], 'Nassau St / Bellevue Ave', 'Adelaide St W / Strachan Ave'))
+        
     elif int(inputs[0]) == 1:
         pass
         
@@ -87,7 +90,7 @@ while True:
         pass
     
     elif int(inputs[0]) == 3:
-        pass
+        optionThree(control)
 
     elif int(inputs[0]) == 4:
         pass

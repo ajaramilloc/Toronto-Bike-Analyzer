@@ -47,7 +47,7 @@ def loadData(analyzer):
     count_1 = 0
     count_2 = 0
     for trip in input_file:
-        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name']:
+        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name'] or trip['Start Station Name'] == '' or trip['End Station Name'] == '':
             count_1 += 1
         else:
             model.addStopConnection(analyzer, trip)
@@ -61,5 +61,8 @@ def loadData(analyzer):
 
 def requirement0(analyzer):
     return model.requirement0(analyzer)
+
+def requirement3(analyzer):
+    return model.requirement3(analyzer)
     
     

@@ -26,6 +26,8 @@
 
 import config as cf
 from DISClib.ADT import graph as gr
+from DISClib.Algorithms.Graphs import scc
+from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -40,12 +42,16 @@ def newAnalyzer():
     analyzer = {
         'connections': None,
         'stops': None,
-        'routes': None
+        'routes': None,
+        'trips': None,
+        'trip_routes': None
     }
 
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
     analyzer['routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+    analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
+    analyzer['trips'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
 
     return analyzer
 
@@ -55,11 +61,14 @@ def addStopConnection(analyzer, trip):
     addStop(analyzer, origin)
     addStop(analyzer, destination)
     addRoutes(analyzer, origin, destination, trip)
-    
+    addTrip(analyzer, origin, destination, trip)
 
 def addStop(analyzer, stop):
     if not gr.containsVertex(analyzer['connections'], stop):
         gr.insertVertex(analyzer['connections'], stop)
+
+    if not gr.containsVertex(analyzer['trips'], stop):
+        gr.insertVertex(analyzer['trips'], stop)
 
 def addRoutes(analyzer, origin, destination, trip):
     if mp.contains(analyzer['stops'], origin):
@@ -83,6 +92,10 @@ def addArrival(map, destination, trip_duration):
     durations = [trip_duration, trip_duration, 1]
     mp.put(map, destination, durations)
 
+def addTrip(analyzer, origin, destination, trip):
+    gr.addEdge(analyzer['trips'], origin, destination, trip['Trip Id'])
+    mp.put(analyzer['trip_routes'], trip['Trip Id'], trip)
+
 def addConnections(analyzer):
     origin_stations = mp.keySet(analyzer['stops'])
     for origin_station in lt.iterator(origin_stations):
@@ -102,3 +115,16 @@ def requirement0(analyzer):
     num_edges = gr.numEdges(graph)
 
     return num_vertices, num_edges
+
+def requirement2(analyzer):
+    vertices = gr.vertices(analyzer['connections'])
+    departures = mp.newMap(5, maptype='PROBING', loadfactor=0.5)
+    arrivals = mp.newMap(5, maptype='PROBING', loadfactor=0.5)
+    for vertix in lt.iterator(vertices):
+        pass
+
+
+def requirement3(analyzer):
+    analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
+    num_elements = scc.connectedComponents(analyzer['components'])
+    return num_elements
