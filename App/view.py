@@ -91,6 +91,7 @@ while True:
         print(f'There are {trips[0]} trips with no duration or self-referenced vertex')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
+        print(mp.get(control['stations_ids'], 'Richmond St W / York St'))
         
     elif int(inputs[0]) == 1:
         pass

@@ -43,15 +43,15 @@ def newAnalyzer():
     analyzer = {
         'connections': None,
         'stops': None,
-        'trips': None,
         'trip_routes': None,
-        'paths': None
+        'paths': None,
+        'stations_ids': None
     }
 
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
     analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+    analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5)
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
-    analyzer['trips'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
 
     return analyzer
 
@@ -63,14 +63,13 @@ def addStopConnection(analyzer, trip):
     addStop(analyzer, origin_filter)
     addStop(analyzer, destination_filter)
     addRoutes(analyzer, origin_filter, destination_filter, trip)
-    addTrip(analyzer, origin_filter, destination_filter, trip)
+    addTrip(analyzer, trip)
+    addStationId(analyzer, origin_filter, trip['Start Station Id'])
+    addStationId(analyzer, destination_filter, trip['End Station Id'])
 
 def addStop(analyzer, stop):
     if not gr.containsVertex(analyzer['connections'], stop):
         gr.insertVertex(analyzer['connections'], stop)
-
-    if not gr.containsVertex(analyzer['trips'], stop):
-        gr.insertVertex(analyzer['trips'], stop)
 
 def addRoutes(analyzer, origin, destination, trip):
     if mp.contains(analyzer['stops'], origin):
@@ -82,21 +81,28 @@ def addRoutes(analyzer, origin, destination, trip):
             arrival_station[0] = arrival_station[1] / arrival_station[2]
 
         else:
-            addArrival(origin_station, destination, trip['Trip  Duration'])
+            addArrival(origin_station, destination, trip['Trip  Duration'], trip['Trip Id'])
         
     else:
         arrivals = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
-        addArrival(arrivals, destination, trip['Trip  Duration'])
+        addArrival(arrivals, destination, trip['Trip  Duration'], trip['Trip Id'])
         mp.put(analyzer['stops'], origin, arrivals)
 
-def addArrival(map, destination, trip_duration):
+def addArrival(map, destination, trip_duration, trip_id):
     trip_duration = int(trip_duration)
-    durations = [trip_duration, trip_duration, 1]
+    trips_ids = lt.newList('ARRAY_LIST')
+    lt.addLast(trips_ids, trip_id)
+    durations = [trip_duration, trip_duration, 1, trips_ids]
     mp.put(map, destination, durations)
 
-def addTrip(analyzer, origin, destination, trip):
-    gr.addEdge(analyzer['trips'], origin, destination, trip['Trip Id'])
+def addTrip(analyzer, trip):
     mp.put(analyzer['trip_routes'], trip['Trip Id'], trip)
+
+def addStationId(analyzer, station, station_id):
+    if mp.contains(analyzer['stations_ids'], station):
+        pass
+    else:
+        mp.put(analyzer['stations_ids'], station, station_id)
 
 def addConnections(analyzer):
     origin_stations = mp.keySet(analyzer['stops'])
