@@ -32,6 +32,7 @@ from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import mergesort as merge
 assert cf
 
 # -----------------------------------------------------
@@ -123,6 +124,29 @@ def requirement0(analyzer):
     num_edges = gr.numEdges(graph)
 
     return num_vertices, num_edges
+
+def requirement1(analyzer):
+    graph = analyzer['connections']
+    lista_vertices = gr.vertices(graph)
+    lista_grados = lt.newList()
+    for vertice in lt.iterator(lista_vertices):
+        grado_vertice = gr.outdegree(graph, vertice)
+        tupla_vertice = (vertice, grado_vertice)
+        lt.addLast(lista_grados, tupla_vertice)
+
+    sorted_list = merge.sort(lista_grados, cmp_grado_vertice)
+
+    return sorted_list
+
+def cmp_grado_vertice(tupla1, tupla2):
+    grado_vertice_1 = tupla1[1]
+    grado_vertice_2 = tupla2[1]
+    
+    if grado_vertice_1 > grado_vertice_2:
+        return True
+    else:
+        return False
+
 
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
