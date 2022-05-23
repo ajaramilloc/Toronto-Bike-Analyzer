@@ -26,6 +26,7 @@
 
 import config as cf
 from DISClib.ADT import graph as gr
+from DISClib.ADT import stack
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT import list as lt
@@ -42,13 +43,12 @@ def newAnalyzer():
     analyzer = {
         'connections': None,
         'stops': None,
-        'routes': None,
         'trips': None,
-        'trip_routes': None
+        'trip_routes': None,
+        'paths': None
     }
 
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    analyzer['routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
     analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
     analyzer['trips'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
@@ -116,15 +116,26 @@ def requirement0(analyzer):
 
     return num_vertices, num_edges
 
-def requirement2(analyzer):
-    vertices = gr.vertices(analyzer['connections'])
-    departures = mp.newMap(5, maptype='PROBING', loadfactor=0.5)
-    arrivals = mp.newMap(5, maptype='PROBING', loadfactor=0.5)
-    for vertix in lt.iterator(vertices):
-        pass
-
-
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
     num_elements = scc.connectedComponents(analyzer['components'])
     return num_elements
+
+def requirement4(analyzer, origin_station, arrival_station):
+    minimumCostPaths(analyzer, origin_station)
+    path = minimumCostPath(analyzer, arrival_station)
+    while (not stack.isEmpty(path)):
+        stop = stack.pop(path)
+        print(stop)
+    return path
+
+# ==============================
+# Funciones de consulta
+# ==============================
+
+def minimumCostPaths(analyzer, origin_station):
+    analyzer['paths'] = djk.Dijkstra(analyzer['connections'], origin_station)
+
+def minimumCostPath(analyzer, arrival_station):
+    path = djk.pathTo(analyzer['paths'], arrival_station)
+    return path

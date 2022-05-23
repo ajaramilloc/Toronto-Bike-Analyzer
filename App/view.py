@@ -38,14 +38,14 @@ def newController():
 
 def printMenu():
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- Comprar bicicletas para las estaciones con más viajes de origen")
-    print("3- Planear paseos turísticos por la ciudad")
-    print("4- Reconocer los componentes fuertemente conectados")
-    print("5- Planear una ruta rápida para el usuario")
-    print("6- Reportar rutas en un rango de fechas para los usuarios anuales")
-    print("7- Planear el mantenimiento preventivo de bicicleta")
-    print("8- La estación más frecuentada por los visitantes")
+    print("0- Cargar información en el catálogo")
+    print("1- Comprar bicicletas para las estaciones con más viajes de origen")
+    print("2- Planear paseos turísticos por la ciudad")
+    print("3- Reconocer los componentes fuertemente conectados")
+    print("4- Planear una ruta rápida para el usuario")
+    print("5- Reportar rutas en un rango de fechas para los usuarios anuales")
+    print("6- Planear el mantenimiento preventivo de bicicleta")
+    print("7- La estación más frecuentada por los visitantes")
 
 # -----------------------------------------------------
 # GENERIC FUNCTIONS
@@ -57,6 +57,13 @@ def printMenu():
 
 def optionThree(control):
     print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
+    print(control['components'])
+
+def optionFour(control):
+    origin_station = input('Enter origin station: ')
+    arrival_station = input('Enter arrival station: ')
+    x = controller.requirement4(control, origin_station, arrival_station)
+    print(x)
 
 # -----------------------------------------------------
 # LOAD DATA
@@ -93,7 +100,7 @@ while True:
         optionThree(control)
 
     elif int(inputs[0]) == 4:
-        pass
+        optionFour(control)
 
     elif int(inputs[0]) == 5:
         pass
