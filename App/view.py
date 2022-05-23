@@ -20,6 +20,7 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+from os import stat
 import config as cf
 import sys
 import controller
@@ -64,8 +65,13 @@ def optionFour(control):
     origin_filter = origin_station.split(' -')[0]
     arrival_station = input('Enter arrival station: ')
     arrival_filter = arrival_station.split(' -')[0]
-    x = controller.requirement4(control, origin_filter, arrival_filter)
-    print(x)
+    path = controller.requirement4(control, origin_filter, arrival_filter)
+    print(f'The average time for the trip is {int(path[1])} minutes')
+    for station in lt.iterator(path[0]):
+        if station[0] is not 0:
+            print(f'Station -> {station[1]} / Station Id -> {float(station[2])} / Time for next station -> {int(station[0])} minutes')
+        else:
+            print(f'Last Station -> {station[1]} / Station Id -> {float(station[2])}')
 
 # -----------------------------------------------------
 # LOAD DATA

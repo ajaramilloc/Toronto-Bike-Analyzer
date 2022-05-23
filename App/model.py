@@ -24,6 +24,7 @@
  * Dario Correal - Version inicial
  """
 
+from turtle import ondrag
 import config as cf
 from DISClib.ADT import graph as gr
 from DISClib.ADT import stack
@@ -138,16 +139,6 @@ def requirement1(analyzer):
 
     return sorted_list
 
-def cmp_grado_vertice(tupla1, tupla2):
-    grado_vertice_1 = tupla1[1]
-    grado_vertice_2 = tupla2[1]
-    
-    if grado_vertice_1 > grado_vertice_2:
-        return True
-    else:
-        return False
-
-
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
     num_elements = scc.connectedComponents(analyzer['components'])
@@ -156,10 +147,30 @@ def requirement3(analyzer):
 def requirement4(analyzer, origin_station, arrival_station):
     minimumCostPaths(analyzer, origin_station)
     path = minimumCostPath(analyzer, arrival_station)
+    list_path = lt.newList('ARRAY_LIST')
+    time_count = 0
     while (not stack.isEmpty(path)):
         stop = stack.pop(path)
-        print(stop)
-    return path
+        station_id = me.getValue(mp.get(analyzer['stations_ids'], stop['vertexA']))
+        station_info = (stop['weight'], stop['vertexA'], station_id)
+        lt.addLast(list_path, station_info)
+        time_count += stop['weight']
+    arrival_id = me.getValue(mp.get(analyzer['stations_ids'], arrival_station))
+    lt.addLast(list_path, (0, arrival_station, arrival_id))
+    return list_path, time_count
+
+# ==============================
+# CMP FUNCTIONS
+# ==============================
+
+def cmp_grado_vertice(tupla1, tupla2):
+    grado_vertice_1 = tupla1[1]
+    grado_vertice_2 = tupla2[1]
+    
+    if grado_vertice_1 > grado_vertice_2:
+        return True
+    else:
+        return False
 
 # ==============================
 # Funciones de consulta
