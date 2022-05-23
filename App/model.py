@@ -57,11 +57,13 @@ def newAnalyzer():
 
 def addStopConnection(analyzer, trip):
     origin = trip['Start Station Name']
+    origin_filter = origin.split(' -')[0]
     destination = trip['End Station Name']
-    addStop(analyzer, origin)
-    addStop(analyzer, destination)
-    addRoutes(analyzer, origin, destination, trip)
-    addTrip(analyzer, origin, destination, trip)
+    destination_filter = destination.split(' -')[0]
+    addStop(analyzer, origin_filter)
+    addStop(analyzer, destination_filter)
+    addRoutes(analyzer, origin_filter, destination_filter, trip)
+    addTrip(analyzer, origin_filter, destination_filter, trip)
 
 def addStop(analyzer, stop):
     if not gr.containsVertex(analyzer['connections'], stop):

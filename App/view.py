@@ -61,8 +61,10 @@ def optionThree(control):
 
 def optionFour(control):
     origin_station = input('Enter origin station: ')
+    origin_filter = origin_station.split(' -')[0]
     arrival_station = input('Enter arrival station: ')
-    x = controller.requirement4(control, origin_station, arrival_station)
+    arrival_filter = arrival_station.split(' -')[0]
+    x = controller.requirement4(control, origin_filter, arrival_filter)
     print(x)
 
 # -----------------------------------------------------
