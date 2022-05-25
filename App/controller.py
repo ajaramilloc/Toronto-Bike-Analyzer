@@ -67,6 +67,9 @@ def loadData(analyzer):
 def requirement0(analyzer):
     return model.requirement0(analyzer)
 
+def requierment1(analyzer):
+    return model.requirement1(analyzer)
+
 def requirement3(analyzer):
     return model.requirement3(analyzer)
 

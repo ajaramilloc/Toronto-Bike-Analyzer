@@ -352,7 +352,34 @@ def requirement1(analyzer):
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])
     num_elements = scc.connectedComponents(analyzer['components'])
-    return num_elements
+    mapa_componentes_conectados = analyzer['components']['idscc'] 
+
+    vertices = mp.keySet(mapa_componentes_conectados)
+    componentes_conectados = mp.valueSet(mapa_componentes_conectados)
+
+    tabla_hash_componentes = mp.newMap(num_elements, maptype="CHAINING", loadfactor=2, comparefunction=cmpcomponentes)
+
+    for vertice in lt.iterator(vertices):
+        num_componente = me.getValue(mp.get(componentes_conectados,vertice))
+
+        if mp.contains(tabla_hash_componentes,num_componente):
+            lt.addLast(me.getValue(mp.get(tabla_hash_componentes,num_componente)), vertice)
+
+        else:
+            lista_vertices = lt.newList()
+            lt.addLast(lista_vertices, vertice)
+            mp.put(tabla_hash_componentes,num_componente,lista_vertices)
+
+    return tabla_hash_componentes, num_elements
+
+def cmpcomponentes(numero1, numero2):
+
+    if numero1 > me.getKey(numero2):
+        return 1
+    elif numero1 == me.getKey(numero2):
+        return 0
+    else:
+        return -1
 
 def requirement4(analyzer, origin_station, arrival_station):
     minimumCostPaths(analyzer, origin_station)

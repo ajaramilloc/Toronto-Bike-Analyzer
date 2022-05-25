@@ -72,9 +72,14 @@ def deltaTime(end, start):
 # PRINT FUNCTIONS
 # -----------------------------------------------------
 
+def optionOne(control):
+    respuesta = controller.requirement1(control)
+    sublista = lt.subList(respuesta, 1, 5)
+    print(sublista)
+
 def optionThree(control):
     print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
-    print(control['components'])
+    #print(control['components'])
 
 def optionFour(control):
     origin_station = input('Enter origin station: ')
