@@ -34,6 +34,7 @@ from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
 from DISClib.Algorithms.Sorting import mergesort as merge
+import time
 assert cf
 
 # -----------------------------------------------------
@@ -51,32 +52,46 @@ def newAnalyzer():
         'bikes_trips': None
     }
 
-    analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5)
-    analyzer['bikes_trips'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000)
+    analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # stops info with average duration
+    analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # key -> trip id / value -> trip info
+    analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5) # key -> station name / value -> station id
+    analyzer['bikes_trips'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # bikes info
+    analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000) # graph 
 
     return analyzer
 
 def addStopConnection(analyzer, trip):
+    # Format stations names
     origin = trip['Start Station Name']
     origin_filter = origin.split(' -')[0]
     arrival = trip['End Station Name']
     arrival_filter = arrival.split(' -')[0]
+    # Format trips dates
+    trip_date = trip['Start Time'].split(' ')[0]
+    # Add vertices to the graph
     addStop(analyzer, origin_filter)
     addStop(analyzer, arrival_filter)
+    # Add average of the trip
     addRoutes(analyzer, origin_filter, arrival_filter, trip)
+    # Add the trip id the the trips map
     addTrip(analyzer, trip)
+    # Add the station id in the stations names map
     addStationId(analyzer, origin_filter, trip['Start Station Id'])
     addStationId(analyzer, arrival_filter, trip['End Station Id'])
+    # Add the bike info in the structures
     addBikeInfo(analyzer, trip['Bike Id'], trip, origin_filter, arrival_filter)
 
 def addStop(analyzer, stop):
+    """
+    Add a vertex to the graph
+    """
     if not gr.containsVertex(analyzer['connections'], stop):
         gr.insertVertex(analyzer['connections'], stop)
 
 def addRoutes(analyzer, origin, destination, trip):
+    """
+    For each trip calculates and add the average duration
+    """
     if mp.contains(analyzer['stops'], origin):
         origin_station = me.getValue(mp.get(analyzer['stops'], origin))
         if mp.contains(origin_station, destination):
@@ -94,6 +109,9 @@ def addRoutes(analyzer, origin, destination, trip):
         mp.put(analyzer['stops'], origin, arrivals)
 
 def addArrival(map, destination, trip_duration, trip_id):
+    """
+    Add a list to the trip, pos 0: Average / pos 1: Durations sum / pos 2: Total trips / pos 3: list with trips ids
+    """
     trip_duration = int(trip_duration)
     trips_ids = lt.newList('ARRAY_LIST')
     lt.addLast(trips_ids, trip_id)
@@ -101,15 +119,27 @@ def addArrival(map, destination, trip_duration, trip_id):
     mp.put(map, destination, durations)
 
 def addTrip(analyzer, trip):
+    """
+    Add the trip id in the trip_routes map. (key -> Trip Id / value -> trip info)
+    """
     mp.put(analyzer['trip_routes'], trip['Trip Id'], trip)
 
 def addStationId(analyzer, station, station_id):
+    """
+    Add the station name in the stations_ids map. (key -> Station Name / value -> Station Id)
+    """
     if mp.contains(analyzer['stations_ids'], station):
         pass
     else:
         mp.put(analyzer['stations_ids'], station, station_id)
 
 def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
+    """
+    - Add the bike id in the map bikes_trips
+    - Add the total trips and total duration with the bike
+    - Add the origin and arrival stations of the bike
+    - Each station have the total trips
+    """
     if mp.contains(analyzer['bikes_trips'], bike_id):
         bike = me.getValue(mp.get(analyzer['bikes_trips'], bike_id))
 
@@ -147,6 +177,9 @@ def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
         mp.put(analyzer['bikes_trips'], bike_id, bike)
 
 def addConnections(analyzer):
+    """
+    Add the weigth (average duration) to each edge
+    """
     origin_stations = mp.keySet(analyzer['stops'])
     for origin_station in lt.iterator(origin_stations):
         arrival_table = me.getValue(mp.get(analyzer['stops'], origin_station))
@@ -156,6 +189,9 @@ def addConnections(analyzer):
             gr.addEdge(analyzer['connections'], origin_station, arrival_station, trip_info[0])
 
 def addBikesMaxMin(analyzer):
+    """
+    Organize the stations of each bike by the number of trips
+    """
     bikes = mp.keySet(analyzer['bikes_trips'])
     for bike in lt.iterator(bikes):
         bike_info = me.getValue(mp.get(analyzer['bikes_trips'], bike))
@@ -249,6 +285,9 @@ def requirement4(analyzer, origin_station, arrival_station):
     arrival_id = me.getValue(mp.get(analyzer['stations_ids'], arrival_station))
     lt.addLast(list_path, (0, arrival_station, arrival_id))
     return list_path, time_count
+
+def requirement5(analyzer):
+    pass
 
 def requirement6(analyzer, bike_id):
     bike = me.getValue(mp.get(analyzer['bikes_trips'], bike_id))

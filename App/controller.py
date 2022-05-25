@@ -47,12 +47,16 @@ def loadData(analyzer):
     count_1 = 0
     count_2 = 0
     for trip in input_file:
-        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name'] or trip['Start Station Name'] == '' or trip['End Station Name'] == '' or trip['Trip  Duration'] == '0':
+        # Data Filter
+        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name'] or trip['Start Station Name'] == '' or trip['End Station Name'] == '' or trip['Trip  Duration'] == '0' or trip['Bike Id'] == '':
             count_1 += 1
         else:
+            # Add Station Info
             model.addStopConnection(analyzer, trip)
             count_2 += 1
+    # Add edges weights
     model.addConnections(analyzer)
+    # Organize the bikes info
     model.addBikesMaxMin(analyzer)
     return(count_1, count_2)
 

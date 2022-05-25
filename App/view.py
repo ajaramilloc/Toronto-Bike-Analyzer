@@ -74,6 +74,9 @@ def optionFour(control):
         else:
             print(f'Last Station -> {station[1]} / Station Id -> {float(station[2])}')
 
+def optionFive(control):
+    pass
+
 def optionSix(control):
     bike_id = input('Enter the bike id: ')
     bike_id_format = bike_id+'.0'
@@ -92,7 +95,6 @@ def optionSix(control):
     print(f'Number trips: {num_arrival}')
     for station in lt.iterator(list_arrival):
         print(f'Arrival station -> {station} / Number trips -> {num_arrival}')
-
 
 # -----------------------------------------------------
 # LOAD DATA
@@ -132,7 +134,7 @@ while True:
         optionFour(control)
 
     elif int(inputs[0]) == 5:
-        pass
+        optionFive(control)
         
     elif int(inputs[0]) == 6:
         optionSix(control)
