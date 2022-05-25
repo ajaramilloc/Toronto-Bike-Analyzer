@@ -29,6 +29,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import graph as gr
 assert cf
+import time
 
 # -----------------------------------------------------
 # NEW CONTROLLER
@@ -52,6 +53,20 @@ def printMenu():
 # -----------------------------------------------------
 # GENERIC FUNCTIONS
 # -----------------------------------------------------
+
+def getTime():
+    """
+    devuelve el instante tiempo de procesamiento en milisegundos
+    """
+    return float(time.perf_counter()*1000)
+
+
+def deltaTime(end, start):
+    """
+    devuelve la diferencia entre tiempos de procesamiento muestreados
+    """
+    elapsed = float(end - start)
+    return elapsed
 
 # -----------------------------------------------------
 # PRINT FUNCTIONS
@@ -112,14 +127,25 @@ while True:
     inputs = input('Select an option to continue: \n')
     if int(inputs[0]) == 0:
         control = newController()
+
+        start_time = getTime()
+
         print("\nLoading Data....\n")
         trips = loadData()
         charge = controller.requirement0(control)
+
+        stop_time = getTime()
+
         print(f'There are {charge[0]} vertices')
         print(f'There are {charge[1]} edges')
         print(f'There are {trips[0]} trips with no duration or self-referenced vertex')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
+        date = me.getValue(om.get(control['trips_dates'], '01/01/2021'))
+        print(date)
+
+        delta_time = deltaTime(stop_time, start_time)
+        print(delta_time)
         
     elif int(inputs[0]) == 1:
         pass

@@ -49,12 +49,14 @@ def newAnalyzer():
         'trip_routes': None,
         'paths': None,
         'stations_ids': None,
+        'trips_dates': None,
         'bikes_trips': None
     }
 
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # stops info with average duration
     analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # key -> trip id / value -> trip info
     analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5) # key -> station name / value -> station id
+    analyzer['trips_dates'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # trips by dates
     analyzer['bikes_trips'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # bikes info
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000) # graph 
 
@@ -68,6 +70,8 @@ def addStopConnection(analyzer, trip):
     arrival_filter = arrival.split(' -')[0]
     # Format trips dates
     trip_date = trip['Start Time'].split(' ')[0]
+    init_trip_hour = trip['Start Time'].split(' ')[1]
+    finish_trip_hour = trip['End Time'].split(' ')[1]
     # Add vertices to the graph
     addStop(analyzer, origin_filter)
     addStop(analyzer, arrival_filter)
@@ -78,6 +82,8 @@ def addStopConnection(analyzer, trip):
     # Add the station id in the stations names map
     addStationId(analyzer, origin_filter, trip['Start Station Id'])
     addStationId(analyzer, arrival_filter, trip['End Station Id'])
+    # Add trips by date
+    addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_filter, arrival_filter)
     # Add the bike info in the structures
     addBikeInfo(analyzer, trip['Bike Id'], trip, origin_filter, arrival_filter)
 
@@ -133,6 +139,81 @@ def addStationId(analyzer, station, station_id):
     else:
         mp.put(analyzer['stations_ids'], station, station_id)
 
+def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin, arrival):
+    
+    if om.contains(analyzer['trips_dates'], trip_date):
+        date = me.getValue(mp.get(analyzer['trips_dates'], trip_date))
+
+        date_info = me.getValue(mp.get(date, 'date_info'))
+        date_info[0] += 1
+        date_info[1] += int(trip['Trip  Duration'])
+
+        # Initial Hours Info
+        initial_hours = me.getValue(mp.get(date, 'initial_hours'))
+        format = init_trip_hour.split(':')[0]
+        init_format = f'{format}:00 - {format}:59'
+        if mp.contains(initial_hours, init_format):
+            initial_count = me.getValue(mp.get(initial_hours, init_format))
+            initial_count[0] += 1
+        else:
+            mp.put(initial_hours, init_format, [1])
+
+        # Finish Hours Info
+        finish_hours = me.getValue(mp.get(date, 'finish_hours'))
+        format = finish_trip_hour.split(':')[0]
+        finish_format = f'{format}:00 - {format}:59'
+        if mp.contains(finish_hours, finish_format):
+            finish_count = me.getValue(mp.get(finish_hours, finish_format))
+            finish_count[0] += 1
+        else:
+            mp.put(finish_hours, finish_format, [1]) 
+
+        # Origin Stations Info
+        origin_stations = me.getValue(mp.get(date, 'origin_stations'))
+        if mp.contains(origin_stations, origin):
+            origin_station = me.getValue(mp.get(origin_stations, origin))
+            origin_station[0] += 1
+        else:
+            mp.put(origin_stations, origin, [1])
+
+        # Arrival Stations Info
+        arrival_stations = me.getValue(mp.get(date, 'arrival_stations'))
+        if mp.contains(arrival_stations, arrival):
+            arrival_station = me.getValue(mp.get(arrival_stations, arrival))
+            arrival_station[0] += 1
+        else:
+            mp.put(arrival_stations, arrival, [1])
+    else:
+        dates = mp.newMap(6, maptype='PROBING', loadfactor=0.5)
+        date_info = [1, int(trip['Trip  Duration'])]
+        mp.put(dates, 'date_info', date_info)
+
+        # Initial Hours Info
+        initial_hours = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+        format = init_trip_hour.split(':')[0]
+        init_format = f'{format}:00 - {format}:59'
+        mp.put(initial_hours, init_format, [1])
+        mp.put(dates, 'initial_hours', initial_hours)
+
+        # Finish Hours Info
+        finish_hours = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+        format = finish_trip_hour.split(':')[0]
+        finish_format = f'{format}:00 - {format}:59'
+        mp.put(finish_hours, finish_format, [1])
+        mp.put(dates, 'finish_hours', finish_hours)
+
+        # Origin Stations Info
+        origin_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+        mp.put(origin_stations, origin, [1])
+        mp.put(dates, 'origin_stations', origin_stations)
+
+        # Arrival Stations Info
+        arrival_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+        mp.put(arrival_stations, arrival, [1])
+        mp.put(dates, 'arrival_stations', arrival_stations)
+
+        mp.put(analyzer['trips_dates'], trip_date, dates)
+
 def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
     """
     - Add the bike id in the map bikes_trips
@@ -165,10 +246,12 @@ def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
         bike = mp.newMap(3, maptype='PROBING', loadfactor=0.5)
         bike_info = [1, int(trip['Trip  Duration'])]
         mp.put(bike, 'bike_info', bike_info)
+
         # Origin Stations Info
         origin_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
         mp.put(origin_stations, origin, [1])
         mp.put(bike, 'origin_stations', origin_stations)
+
         # Arrival Stations Info
         arrival_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
         mp.put(arrival_stations, arrival, [1])
@@ -322,6 +405,28 @@ def cmpTreeElements(element1, element2):
     if element1 == element2:
         return 0
     elif element1 > element2:
+        return 1
+    else:
+        return -1
+
+def compareDates(date1, date2):
+    date_format1 = time.strptime(str(date1), "%m/%d/%Y")
+    date_format2 = time.strptime(str(date2), "%m/%d/%Y")
+
+    if (date_format1 == date_format2):
+        return 0
+    elif (date_format1 > date_format2):
+        return 1
+    else:
+        return -1
+
+def compareHours(hour1, hour2):
+    hour_format1 = time.strptime(str(hour1), "%H:%M")
+    hour_format2 = time.strptime(str(hour2), "%H:%M")
+
+    if (hour_format1 == hour_format2):
+        return 0
+    elif (hour_format1 > hour_format2):
         return 1
     else:
         return -1
