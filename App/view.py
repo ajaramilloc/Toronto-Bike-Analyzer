@@ -94,7 +94,7 @@ def optionFour(control):
     arrival_station = input('Enter arrival station: ') #Davenport Rd / Avenue Rd
     arrival_filter = arrival_station.split(' -')[0]
     path = controller.requirement4(control, origin_filter, arrival_filter)
-    print(f'The average time for the trip is {int(path[1])} minutes')
+    print(f'\nThe average time for the trip is {int(path[1])} minutes')
     for station in lt.iterator(path[0]):
         if station[0] != 0:
             print(f'Station -> {station[1]} / Time for next station -> {int(station[0])} minutes')
@@ -102,26 +102,62 @@ def optionFour(control):
             print(f'Last Station -> {station[1]}')
 
 def optionFive(control):
-    pass
+    initial_date = input('Enter the initial date: ') #01/01/2021
+    final_date = input('Enter the final date: ') #01/02/2021
+    dates = controller.requirement5(control, initial_date, final_date)
+    print(f'\nTotal trips between {initial_date} - {final_date}: {dates[4]}')
+    print(f'Total duration between {initial_date} - {final_date}: {dates[5]}')
+    print('\n----------------------------------------------------------------------------------\n')
+    num_origin = me.getKey(dates[0])
+    list_origin = me.getValue(dates[0])
+    print(f'\nThe stations with more started trips with the are: ')
+    print(f'Number trips: {num_origin}')
+    for station in lt.iterator(list_origin):
+        print(f'Origin station -> {station} / Number trips -> {num_origin}')
+    print('\n----------------------------------------------------------------------------------\n')
+    num_arrival = me.getKey(dates[1])
+    list_arrival = me.getValue(dates[1])
+    print(f'\nThe stations with more finished trips are: ')
+    print(f'Number trips: {num_arrival}')
+    for station in lt.iterator(list_arrival):
+        print(f'Arrival station -> {station} / Number trips -> {num_arrival}')
+    print('\n----------------------------------------------------------------------------------\n')
+    num_initial_hour = me.getKey(dates[2])
+    list_initial_hour = me.getValue(dates[2])
+    print(f'\nThe hours with more started trips are: ')
+    print(f'Number trips: {num_initial_hour}')
+    for hour in lt.iterator(list_initial_hour):
+        print(f'Hour -> {hour} / Number trips -> {num_initial_hour}')
+    print('\n----------------------------------------------------------------------------------\n')
+    num_final_hour = me.getKey(dates[3])
+    list_final_hour = me.getValue(dates[3])
+    print(f'\nThe hours with more finished trips are: ')
+    print(f'Number trips: {num_final_hour}')
+    for hour in lt.iterator(list_final_hour):
+        print(f'Hour -> {hour} / Number trips -> {num_final_hour}')
+    print('\n----------------------------------------------------------------------------------\n')
 
 def optionSix(control):
     bike_id = input('Enter the bike id: ')
     bike_id_format = bike_id+'.0'
     bike = controller.requirement6(control, bike_id_format)
-    print(f'Total trips with the bike {bike_id}: {int(bike[0])}')
+    print(f'\nTotal trips with the bike {bike_id}: {int(bike[0])}')
     print(f'Total time with the bike {bike_id}: {int(bike[1]) // 60} hours and {int(bike[1]) % 60} minutes')
+    print('\n----------------------------------------------------------------------------------\n')
     num_origin = me.getKey(bike[2])
     list_origin = me.getValue(bike[2])
     print(f'\nThe stations with more started trips with the bike are: ')
     print(f'Number trips: {num_origin}')
     for station in lt.iterator(list_origin):
         print(f'Origin station -> {station} / Number trips -> {num_origin}')
+    print('\n----------------------------------------------------------------------------------\n')
     num_arrival = me.getKey(bike[3])
     list_arrival = me.getValue(bike[3])
     print(f'\nThe stations with more finished trips with the bike are: ')
     print(f'Number trips: {num_arrival}')
     for station in lt.iterator(list_arrival):
         print(f'Arrival station -> {station} / Number trips -> {num_arrival}')
+    print('\n----------------------------------------------------------------------------------\n')
 
 # -----------------------------------------------------
 # LOAD DATA
@@ -156,7 +192,7 @@ while True:
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
         """
-        date = me.getValue(om.get(control['trips_dates'], '01/01/2021'))
+        date = om.values(control['trips_dates'], '01/01/2021', '01/02/2021')
         print(date)
         """
         #print(control['connections'])

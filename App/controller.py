@@ -42,7 +42,7 @@ def newController():
 # -----------------------------------------------------
 
 def loadData(analyzer):
-    trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-small.csv'
+    trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-large.csv'
     input_file = csv.DictReader(open(trips_file, encoding='utf-8'))
     count_1 = 0
     count_2 = 0
@@ -50,10 +50,10 @@ def loadData(analyzer):
     count_4 = 0
     for trip in input_file:
         # Data Filter
-        if trip['Trip  Duration'] == '' or trip['Start Station Name'] == trip['End Station Name'] or trip['Start Station Id'] == '' or trip['End Station Id'] == '' or trip['Trip  Duration'] == '0' or trip['Bike Id'] == '':
+        if (trip['Trip  Duration'] == '') or (trip['Start Station Name'] == trip['End Station Name']) or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == ''):
             if trip['Trip  Duration'] == '0':
                 count_1 += 1
-            if trip['Trip  Duration'] == '' or trip['Start Station Id'] == '' or trip['End Station Id'] == '' or trip['Bike Id'] == '':
+            if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Bike Id'] == ''):
                 count_3 += 1
             if trip['Start Station Name'] == trip['End Station Name']:
                 count_4 += 1
@@ -82,6 +82,9 @@ def requirement3(analyzer):
 
 def requirement4(analyzer, origin_station, arrival_station):
     return model.requirement4(analyzer, origin_station, arrival_station)
+
+def requirement5(analyzer, initial_date, final_date):
+    return model.requirement5(analyzer, initial_date, final_date)
 
 def requirement6(analyzer, bike_id):
     return model.requirement6(analyzer, bike_id)

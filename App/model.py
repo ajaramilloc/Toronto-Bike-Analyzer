@@ -67,14 +67,14 @@ def newAnalyzer():
 def addStopConnection(analyzer, trip):
     # Format stations names
     origin = trip['Start Station Name']
-    if origin == '':
-        origin = 'UNKNOWN'
+    if trip['Start Station Name'] == '':
+        trip['Start Station Name'] = 'UNKNOWN'
     origin_id = float(trip['Start Station Id'])
     origin_filter = origin.split(' -')[0]
     origin_format = f'{origin_id}-{origin}'
     arrival = trip['End Station Name']
-    if arrival == '':
-        arrival = 'UNKNOWN'
+    if trip['End Station Name'] == '':
+        trip['End Station Name'] = 'UNKNOWN'
     arrival_id = float(trip['End Station Id'])
     arrival_filter = arrival.split(' -')[0]
     arrival_format = f'{arrival_id}-{arrival}'
@@ -96,7 +96,7 @@ def addStopConnection(analyzer, trip):
     addStationFormat(analyzer, origin, origin_format)
     addStationFormat(analyzer, arrival, arrival_format)
     # Add trips by date
-    addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_filter, arrival_filter)
+    addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_format, arrival_format)
     # Add the bike info in the structures
     addBikeInfo(analyzer, trip['Bike Id'], trip, origin_format, arrival_format)
 
@@ -158,7 +158,7 @@ def addStationFormat(analyzer, station, station_format):
     else:
         mp.put(analyzer['stations_formats'], station, station_format)
 
-def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin, arrival):
+def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_format, arrival_format):
     
     if om.contains(analyzer['trips_dates'], trip_date):
         date = me.getValue(mp.get(analyzer['trips_dates'], trip_date))
@@ -189,19 +189,19 @@ def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, 
 
         # Origin Stations Info
         origin_stations = me.getValue(mp.get(date, 'origin_stations'))
-        if mp.contains(origin_stations, origin):
-            origin_station = me.getValue(mp.get(origin_stations, origin))
+        if mp.contains(origin_stations, origin_format):
+            origin_station = me.getValue(mp.get(origin_stations, origin_format))
             origin_station[0] += 1
         else:
-            mp.put(origin_stations, origin, [1])
+            mp.put(origin_stations, origin_format, [1])
 
         # Arrival Stations Info
         arrival_stations = me.getValue(mp.get(date, 'arrival_stations'))
-        if mp.contains(arrival_stations, arrival):
-            arrival_station = me.getValue(mp.get(arrival_stations, arrival))
+        if mp.contains(arrival_stations, arrival_format):
+            arrival_station = me.getValue(mp.get(arrival_stations, arrival_format))
             arrival_station[0] += 1
         else:
-            mp.put(arrival_stations, arrival, [1])
+            mp.put(arrival_stations, arrival_format, [1])
     else:
         dates = mp.newMap(6, maptype='PROBING', loadfactor=0.5)
         date_info = [1, int(trip['Trip  Duration'])]
@@ -223,12 +223,12 @@ def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, 
 
         # Origin Stations Info
         origin_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
-        mp.put(origin_stations, origin, [1])
+        mp.put(origin_stations, origin_format, [1])
         mp.put(dates, 'origin_stations', origin_stations)
 
         # Arrival Stations Info
         arrival_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
-        mp.put(arrival_stations, arrival, [1])
+        mp.put(arrival_stations, arrival_format, [1])
         mp.put(dates, 'arrival_stations', arrival_stations)
 
         mp.put(analyzer['trips_dates'], trip_date, dates)
@@ -439,8 +439,107 @@ def requirement4(analyzer, origin_station, arrival_station):
     lt.addLast(list_path, (0, f'{arrival_id}-{arrival_station}'))
     return list_path, time_count
 
-def requirement5(analyzer):
-    pass
+def requirement5(analyzer, initial_date, final_date):
+    dates = analyzer['trips_dates']
+    interval_dates = om.values(dates, initial_date, final_date)
+    dates_info = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+    total_trips = 0
+    trips_duration = 0
+    for i in lt.iterator(interval_dates):
+        trip_info = me.getValue(mp.get(i, 'date_info'))
+        total_trips += trip_info[0]
+        trips_duration += trip_info[1]
+        
+        origin_stations = mp.keySet(me.getValue(mp.get(i, 'origin_stations')))
+        origin_stations_map = me.getValue(mp.get(i, 'origin_stations'))
+        origin_stations_num = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+        for origin_station in lt.iterator(origin_stations):
+            num_trips = me.getValue(mp.get(origin_stations_map, origin_station))
+            num_trips = num_trips[0]
+            if om.contains(origin_stations_num, num_trips):
+                origin_stations_list = me.getValue(om.get(origin_stations_num, num_trips))
+                if not lt.isPresent(origin_stations_list, origin_station):
+                    lt.addLast(origin_stations_list, origin_station)
+
+            else:
+                origin_stations_list = lt.newList('ARRAY_LIST')
+                lt.addLast(origin_stations_list, origin_station)
+                om.put(origin_stations_num, num_trips, origin_stations_list)
+
+        arrival_stations = mp.keySet(me.getValue(mp.get(i, 'arrival_stations')))
+        arrival_stations_map = me.getValue(mp.get(i, 'arrival_stations'))
+        arrival_stations_num = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+        for arrival_station in lt.iterator(arrival_stations):
+            num_trips = me.getValue(mp.get(arrival_stations_map, arrival_station))
+            num_trips = num_trips[0]
+            if om.contains(arrival_stations_num, num_trips):
+                arrival_stations_list = me.getValue(om.get(arrival_stations_num, num_trips))
+                if not lt.isPresent(arrival_stations_list, arrival_station):
+                    lt.addLast(arrival_stations_list, arrival_station)
+
+            else:
+                arrival_stations_list = lt.newList('ARRAY_LIST')
+                lt.addLast(arrival_stations_list, arrival_station)
+                om.put(arrival_stations_num, num_trips, arrival_stations_list)
+
+        initial_hours = mp.keySet(me.getValue(mp.get(i, 'initial_hours')))
+        initial_hours_map = me.getValue(mp.get(i, 'initial_hours'))
+        initial_hours_num = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+        for initial_hour in lt.iterator(initial_hours):
+            num_trips = me.getValue(mp.get(initial_hours_map, initial_hour))
+            num_trips = num_trips[0]
+            if om.contains(initial_hours_num, num_trips):
+                initial_hours_list = me.getValue(om.get(initial_hours_num, num_trips))
+                if not lt.isPresent(initial_hours_list, initial_hour):
+                    lt.addLast(initial_hours_list, initial_hour)
+
+            else:
+                initial_hours_list = lt.newList('ARRAY_LIST')
+                lt.addLast(initial_hours_list, initial_hour)
+                om.put(initial_hours_num, num_trips, initial_hours_list)
+
+        finish_hours = mp.keySet(me.getValue(mp.get(i, 'finish_hours')))
+        finish_hours_map = me.getValue(mp.get(i, 'finish_hours'))
+        finish_hours_num = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+        for finish_hour in lt.iterator(finish_hours):
+            num_trips = me.getValue(mp.get(finish_hours_map, finish_hour))
+            num_trips = num_trips[0]
+            if om.contains(finish_hours_num, num_trips):
+                finish_hours_list = me.getValue(om.get(finish_hours_num, num_trips))
+                if not lt.isPresent(finish_hours_list, finish_hour):
+                    lt.addLast(finish_hours_list, finish_hour)
+
+            else:
+                finish_hours_list = lt.newList('ARRAY_LIST')
+                lt.addLast(finish_hours_list, finish_hour)
+                om.put(finish_hours_num, num_trips, finish_hours_list)
+
+    mp.put(dates_info, 'finish_hours_num', finish_hours_num)
+    mp.put(dates_info, 'initial_hours_num', initial_hours_num)
+    mp.put(dates_info, 'arrival_stations_num', arrival_stations_num)
+    mp.put(dates_info, 'origin_stations_num', origin_stations_num)
+
+    origin_stations_order = me.getValue(mp.get(dates_info, 'origin_stations_num'))
+    max_origin = om.maxKey(origin_stations_order)
+    max_origin_stations = om.get(origin_stations_order, max_origin)
+
+    arrival_stations_order = me.getValue(mp.get(dates_info, 'arrival_stations_num'))
+    max_arrival = om.maxKey(arrival_stations_order)
+    max_arrival_stations = om.get(arrival_stations_order, max_arrival)
+
+    initial_hours_order = me.getValue(mp.get(dates_info, 'initial_hours_num'))
+    max_initial = om.maxKey(initial_hours_order)
+    max_initial_hours = om.get(initial_hours_order, max_initial)
+
+    finish_hours_order = me.getValue(mp.get(dates_info, 'finish_hours_num'))
+    max_finish = om.maxKey(finish_hours_order)
+    max_finish_hours = om.get(finish_hours_order, max_finish)
+
+    return max_origin_stations, max_arrival_stations, max_initial_hours, max_finish_hours, total_trips, trips_duration
 
 def requirement6(analyzer, bike_id):
     bike = me.getValue(mp.get(analyzer['bikes_trips'], bike_id))
@@ -486,17 +585,6 @@ def compareDates(date1, date2):
     if (date_format1 == date_format2):
         return 0
     elif (date_format1 > date_format2):
-        return 1
-    else:
-        return -1
-
-def compareHours(hour1, hour2):
-    hour_format1 = time.strptime(str(hour1), "%H:%M")
-    hour_format2 = time.strptime(str(hour2), "%H:%M")
-
-    if (hour_format1 == hour_format2):
-        return 0
-    elif (hour_format1 > hour_format2):
         return 1
     else:
         return -1
