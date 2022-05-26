@@ -374,12 +374,11 @@ def requirement3(analyzer):
     mapa_componentes_conectados = analyzer['components']['idscc'] 
 
     vertices = mp.keySet(mapa_componentes_conectados)
-    componentes_conectados = mp.valueSet(mapa_componentes_conectados)
 
     tabla_hash_componentes = mp.newMap(num_elements, maptype="CHAINING", loadfactor=2, comparefunction=cmpcomponentes)
 
     for vertice in lt.iterator(vertices):
-        num_componente = me.getValue(mp.get(componentes_conectados,vertice))
+        num_componente = me.getValue(mp.get(mapa_componentes_conectados,vertice))
 
         if mp.contains(tabla_hash_componentes,num_componente):
             lt.addLast(me.getValue(mp.get(tabla_hash_componentes,num_componente)), vertice)
@@ -389,7 +388,31 @@ def requirement3(analyzer):
             lt.addLast(lista_vertices, vertice)
             mp.put(tabla_hash_componentes,num_componente,lista_vertices)
 
-    return tabla_hash_componentes, num_elements
+    tabla_componentes = mp.newMap(num_elements, maptype="CHAINING", loadfactor=2, comparefunction=cmpcomponentes)
+
+    for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
+        vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
+        numero_estaciones = lt.size(vertices)
+        print("Componente: " + str(componente) + "Vertices: " ,vertices)
+        max_viaje_inicio = 0
+        max_viaje_final = 0
+        vertice_inicio = ""
+        vertice_final = ""
+        for vertice in lt.iterator(vertices):
+            grado_inicio = gr.outdegree(analyzer['connections'],vertice)
+            grado_termina = gr.indegree(analyzer['connections'],vertice)
+
+            if grado_inicio >= max_viaje_inicio:
+                max_viaje_inicio = gr.outdegree(analyzer['connections'],vertice)
+                vertice_inicio = vertice
+            if grado_termina >= max_viaje_final:
+                max_viaje_final = gr.indegree(analyzer['connections'],vertice)
+                vertice_final = vertice
+
+        mp.put(tabla_componentes, componente, (vertice_inicio, vertice_final, numero_estaciones))
+            
+
+    return tabla_componentes
 
 def cmpcomponentes(numero1, numero2):
 

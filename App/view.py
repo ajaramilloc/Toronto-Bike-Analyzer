@@ -78,8 +78,15 @@ def optionOne(control):
     print(sublista)
 
 def optionThree(control):
-    print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
+    #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
     #print(control['components'])
+    tabla_hash_componentes = controller.requirement3(control)
+
+    for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
+        vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
+        print("Componente: " + str(componente) + "Vertices: " ,vertices)
+
+            
 
 def optionFour(control):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
@@ -155,7 +162,7 @@ while True:
         #print(control['connections'])
 
         delta_time = deltaTime(stop_time, start_time)
-        print(delta_time)
+        #print(delta_time)
         
     elif int(inputs[0]) == 1:
         pass
