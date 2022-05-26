@@ -78,8 +78,15 @@ def optionOne(control):
     print(sublista)
 
 def optionThree(control):
-    print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
+    #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
     #print(control['components'])
+    tabla_hash_componentes = controller.requirement3(control)
+
+    for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
+        vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
+        print("Componente: " + str(componente) + "Vertices: " ,vertices)
+
+            
 
 def optionFour(control):
     origin_station = input('Enter origin station: ')
@@ -147,10 +154,10 @@ while True:
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
         date = me.getValue(om.get(control['trips_dates'], '01/01/2021'))
-        print(date)
+        #print(date)
 
         delta_time = deltaTime(stop_time, start_time)
-        print(delta_time)
+        #print(delta_time)
         
     elif int(inputs[0]) == 1:
         pass
