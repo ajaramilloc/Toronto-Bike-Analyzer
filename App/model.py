@@ -49,6 +49,7 @@ def newAnalyzer():
         'trip_routes': None,
         'paths': None,
         'stations_ids': None,
+        'stations_formats': None,
         'trips_dates': None,
         'bikes_trips': None
     }
@@ -56,6 +57,7 @@ def newAnalyzer():
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # stops info with average duration
     analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # key -> trip id / value -> trip info
     analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5) # key -> station name / value -> station id
+    analyzer['stations_formats'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5)
     analyzer['trips_dates'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # trips by dates
     analyzer['bikes_trips'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # bikes info
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000) # graph 
@@ -65,27 +67,38 @@ def newAnalyzer():
 def addStopConnection(analyzer, trip):
     # Format stations names
     origin = trip['Start Station Name']
+    if origin == '':
+        origin = 'UNKNOWN'
+    origin_id = float(trip['Start Station Id'])
     origin_filter = origin.split(' -')[0]
+    origin_format = f'{origin_id}-{origin}'
     arrival = trip['End Station Name']
+    if arrival == '':
+        arrival = 'UNKNOWN'
+    arrival_id = float(trip['End Station Id'])
     arrival_filter = arrival.split(' -')[0]
+    arrival_format = f'{arrival_id}-{arrival}'
     # Format trips dates
     trip_date = trip['Start Time'].split(' ')[0]
     init_trip_hour = trip['Start Time'].split(' ')[1]
     finish_trip_hour = trip['End Time'].split(' ')[1]
     # Add vertices to the graph
-    addStop(analyzer, origin_filter)
-    addStop(analyzer, arrival_filter)
+    addStop(analyzer, origin_format)
+    addStop(analyzer, arrival_format)
     # Add average of the trip
-    addRoutes(analyzer, origin_filter, arrival_filter, trip)
+    addRoutes(analyzer, origin_format, arrival_format, trip)
     # Add the trip id the the trips map
     addTrip(analyzer, trip)
     # Add the station id in the stations names map
-    addStationId(analyzer, origin_filter, trip['Start Station Id'])
-    addStationId(analyzer, arrival_filter, trip['End Station Id'])
+    addStationId(analyzer, origin_format, trip['Start Station Id'])
+    addStationId(analyzer, arrival_format, trip['End Station Id'])
+
+    addStationFormat(analyzer, origin, origin_format)
+    addStationFormat(analyzer, arrival, arrival_format)
     # Add trips by date
     addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_filter, arrival_filter)
     # Add the bike info in the structures
-    addBikeInfo(analyzer, trip['Bike Id'], trip, origin_filter, arrival_filter)
+    addBikeInfo(analyzer, trip['Bike Id'], trip, origin_format, arrival_format)
 
 def addStop(analyzer, stop):
     """
@@ -94,25 +107,25 @@ def addStop(analyzer, stop):
     if not gr.containsVertex(analyzer['connections'], stop):
         gr.insertVertex(analyzer['connections'], stop)
 
-def addRoutes(analyzer, origin, destination, trip):
+def addRoutes(analyzer, origin_format, destination_format, trip):
     """
     For each trip calculates and add the average duration
     """
-    if mp.contains(analyzer['stops'], origin):
-        origin_station = me.getValue(mp.get(analyzer['stops'], origin))
-        if mp.contains(origin_station, destination):
-            arrival_station = me.getValue(mp.get(origin_station, destination))
+    if mp.contains(analyzer['stops'], origin_format):
+        origin_station = me.getValue(mp.get(analyzer['stops'], origin_format))
+        if mp.contains(origin_station, destination_format):
+            arrival_station = me.getValue(mp.get(origin_station, destination_format))
             arrival_station[2] += 1
             arrival_station[1] += int(trip['Trip  Duration'])
             arrival_station[0] = arrival_station[1] / arrival_station[2]
 
         else:
-            addArrival(origin_station, destination, trip['Trip  Duration'], trip['Trip Id'])
+            addArrival(origin_station, destination_format, trip['Trip  Duration'], trip['Trip Id'])
         
     else:
         arrivals = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
-        addArrival(arrivals, destination, trip['Trip  Duration'], trip['Trip Id'])
-        mp.put(analyzer['stops'], origin, arrivals)
+        addArrival(arrivals, destination_format, trip['Trip  Duration'], trip['Trip Id'])
+        mp.put(analyzer['stops'], origin_format, arrivals)
 
 def addArrival(map, destination, trip_duration, trip_id):
     """
@@ -138,6 +151,12 @@ def addStationId(analyzer, station, station_id):
         pass
     else:
         mp.put(analyzer['stations_ids'], station, station_id)
+
+def addStationFormat(analyzer, station, station_format):
+    if mp.contains(analyzer['stations_formats'], station):
+        pass
+    else:
+        mp.put(analyzer['stations_formats'], station, station_format)
 
 def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin, arrival):
     
@@ -214,7 +233,7 @@ def addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, 
 
         mp.put(analyzer['trips_dates'], trip_date, dates)
 
-def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
+def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
     """
     - Add the bike id in the map bikes_trips
     - Add the total trips and total duration with the bike
@@ -229,18 +248,18 @@ def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
         bike_info[1] += int(trip['Trip  Duration'])
 
         origin_stations = me.getValue(mp.get(bike, 'origin_stations'))
-        if mp.contains(origin_stations, origin):
-            origin_station = me.getValue(mp.get(origin_stations, origin))
+        if mp.contains(origin_stations, origin_format):
+            origin_station = me.getValue(mp.get(origin_stations, origin_format))
             origin_station[0] += 1
         else:
-            mp.put(origin_stations, origin, [1])
+            mp.put(origin_stations, origin_format, [1])
 
         arrival_stations = me.getValue(mp.get(bike, 'arrival_stations'))
-        if mp.contains(arrival_stations, arrival):
-            arrival_station = me.getValue(mp.get(arrival_stations, arrival))
+        if mp.contains(arrival_stations, arrival_format):
+            arrival_station = me.getValue(mp.get(arrival_stations, arrival_format))
             arrival_station[0] += 1
         else:
-            mp.put(arrival_stations, arrival, [1])
+            mp.put(arrival_stations, arrival_format, [1])
         
     else:
         bike = mp.newMap(3, maptype='PROBING', loadfactor=0.5)
@@ -249,12 +268,12 @@ def addBikeInfo(analyzer, bike_id, trip, origin, arrival):
 
         # Origin Stations Info
         origin_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
-        mp.put(origin_stations, origin, [1])
+        mp.put(origin_stations, origin_format, [1])
         mp.put(bike, 'origin_stations', origin_stations)
 
         # Arrival Stations Info
         arrival_stations = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
-        mp.put(arrival_stations, arrival, [1])
+        mp.put(arrival_stations, arrival_format, [1])
         mp.put(bike, 'arrival_stations', arrival_stations)
 
         mp.put(analyzer['bikes_trips'], bike_id, bike)
@@ -382,18 +401,19 @@ def cmpcomponentes(numero1, numero2):
         return -1
 
 def requirement4(analyzer, origin_station, arrival_station):
-    minimumCostPaths(analyzer, origin_station)
-    path = minimumCostPath(analyzer, arrival_station)
+    origin_format = me.getValue(mp.get(analyzer['stations_formats'], origin_station))
+    arrival_format = me.getValue(mp.get(analyzer['stations_formats'], arrival_station))
+    minimumCostPaths(analyzer, origin_format)
+    path = minimumCostPath(analyzer, arrival_format)
     list_path = lt.newList('ARRAY_LIST')
     time_count = 0
     while (not stack.isEmpty(path)):
         stop = stack.pop(path)
-        station_id = me.getValue(mp.get(analyzer['stations_ids'], stop['vertexA']))
-        station_info = (stop['weight'], stop['vertexA'], station_id)
+        station_info = (stop['weight'], stop['vertexA'])
         lt.addLast(list_path, station_info)
         time_count += stop['weight']
-    arrival_id = me.getValue(mp.get(analyzer['stations_ids'], arrival_station))
-    lt.addLast(list_path, (0, arrival_station, arrival_id))
+    arrival_id = me.getValue(mp.get(analyzer['stations_ids'], arrival_format))
+    lt.addLast(list_path, (0, f'{arrival_id}-{arrival_station}'))
     return list_path, time_count
 
 def requirement5(analyzer):
@@ -462,8 +482,8 @@ def compareHours(hour1, hour2):
 # Funciones de consulta
 # ==============================
 
-def minimumCostPaths(analyzer, origin_station):
-    analyzer['paths'] = djk.Dijkstra(analyzer['connections'], origin_station)
+def minimumCostPaths(analyzer, origin_format):
+    analyzer['paths'] = djk.Dijkstra(analyzer['connections'], origin_format)
 
 def minimumCostPath(analyzer, arrival_station):
     path = djk.pathTo(analyzer['paths'], arrival_station)

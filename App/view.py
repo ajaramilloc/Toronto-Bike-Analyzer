@@ -82,17 +82,17 @@ def optionThree(control):
     #print(control['components'])
 
 def optionFour(control):
-    origin_station = input('Enter origin station: ')
+    origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
     origin_filter = origin_station.split(' -')[0]
-    arrival_station = input('Enter arrival station: ')
+    arrival_station = input('Enter arrival station: ') #Davenport Rd / Avenue Rd
     arrival_filter = arrival_station.split(' -')[0]
     path = controller.requirement4(control, origin_filter, arrival_filter)
     print(f'The average time for the trip is {int(path[1])} minutes')
     for station in lt.iterator(path[0]):
         if station[0] != 0:
-            print(f'Station -> {station[1]} / Station Id -> {float(station[2])} / Time for next station -> {int(station[0])} minutes')
+            print(f'Station -> {station[1]} / Time for next station -> {int(station[0])} minutes')
         else:
-            print(f'Last Station -> {station[1]} / Station Id -> {float(station[2])}')
+            print(f'Last Station -> {station[1]}')
 
 def optionFive(control):
     pass
@@ -109,8 +109,8 @@ def optionSix(control):
     print(f'Number trips: {num_origin}')
     for station in lt.iterator(list_origin):
         print(f'Origin station -> {station} / Number trips -> {num_origin}')
-    num_arrival = me.getKey(bike[2])
-    list_arrival = me.getValue(bike[2])
+    num_arrival = me.getKey(bike[3])
+    list_arrival = me.getValue(bike[3])
     print(f'\nThe stations with more finished trips with the bike are: ')
     print(f'Number trips: {num_arrival}')
     for station in lt.iterator(list_arrival):
@@ -143,11 +143,16 @@ while True:
 
         print(f'There are {charge[0]} vertices')
         print(f'There are {charge[1]} edges')
-        print(f'There are {trips[0]} trips with no duration or self-referenced vertex')
+        print(f'There are {trips[0]} trips with duration 0.0')
+        print(f'There are {trips[2]} trips with incomplete information')
+        print(f'There are {trips[3]} trips with self-referenced data')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
+        """
         date = me.getValue(om.get(control['trips_dates'], '01/01/2021'))
         print(date)
+        """
+        #print(control['connections'])
 
         delta_time = deltaTime(stop_time, start_time)
         print(delta_time)
