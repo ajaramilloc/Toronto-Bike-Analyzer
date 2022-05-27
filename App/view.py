@@ -198,10 +198,10 @@ while True:
         #print(control['connections'])
 
         delta_time = deltaTime(stop_time, start_time)
-        #print(delta_time)
+        print(delta_time)
         
     elif int(inputs[0]) == 1:
-        pass
+        optionOne(control)
         
     elif int(inputs[0]) == 2:
         pass

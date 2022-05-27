@@ -42,7 +42,7 @@ def newController():
 # -----------------------------------------------------
 
 def loadData(analyzer):
-    trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-large.csv'
+    trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-small.csv'
     input_file = csv.DictReader(open(trips_file, encoding='utf-8'))
     count_1 = 0
     count_2 = 0
@@ -74,7 +74,7 @@ def loadData(analyzer):
 def requirement0(analyzer):
     return model.requirement0(analyzer)
 
-def requierment1(analyzer):
+def requirement1(analyzer):
     return model.requirement1(analyzer)
 
 def requirement3(analyzer):

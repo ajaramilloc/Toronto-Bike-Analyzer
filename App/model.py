@@ -51,7 +51,8 @@ def newAnalyzer():
         'stations_ids': None,
         'stations_formats': None,
         'trips_dates': None,
-        'bikes_trips': None
+        'bikes_trips': None,
+        'out_stations': None
     }
 
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # stops info with average duration
@@ -60,6 +61,7 @@ def newAnalyzer():
     analyzer['stations_formats'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5)
     analyzer['trips_dates'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # trips by dates
     analyzer['bikes_trips'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # bikes info
+    analyzer['out_stations'] = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
     analyzer['connections'] = gr.newGraph(datastructure='ADJ_LIST', directed=True, size=36000) # graph 
 
     return analyzer
@@ -70,13 +72,11 @@ def addStopConnection(analyzer, trip):
     if trip['Start Station Name'] == '':
         trip['Start Station Name'] = 'UNKNOWN'
     origin_id = float(trip['Start Station Id'])
-    origin_filter = origin.split(' -')[0]
     origin_format = f'{origin_id}-{origin}'
     arrival = trip['End Station Name']
     if trip['End Station Name'] == '':
         trip['End Station Name'] = 'UNKNOWN'
     arrival_id = float(trip['End Station Id'])
-    arrival_filter = arrival.split(' -')[0]
     arrival_format = f'{arrival_id}-{arrival}'
     # Format trips dates
     trip_date = trip['Start Time'].split(' ')[0]
@@ -414,15 +414,6 @@ def requirement3(analyzer):
 
     return tabla_componentes
 
-def cmpcomponentes(numero1, numero2):
-
-    if numero1 > me.getKey(numero2):
-        return 1
-    elif numero1 == me.getKey(numero2):
-        return 0
-    else:
-        return -1
-
 def requirement4(analyzer, origin_station, arrival_station):
     origin_format = me.getValue(mp.get(analyzer['stations_formats'], origin_station))
     arrival_format = me.getValue(mp.get(analyzer['stations_formats'], arrival_station))
@@ -586,6 +577,15 @@ def compareDates(date1, date2):
         return 0
     elif (date_format1 > date_format2):
         return 1
+    else:
+        return -1
+
+def cmpcomponentes(numero1, numero2):
+
+    if numero1 > me.getKey(numero2):
+        return 1
+    elif numero1 == me.getKey(numero2):
+        return 0
     else:
         return -1
 
