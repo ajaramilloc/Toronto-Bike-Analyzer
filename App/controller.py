@@ -50,13 +50,16 @@ def loadData(analyzer):
     count_4 = 0
     for trip in input_file:
         # Data Filter
-        if (trip['Trip  Duration'] == '') or (trip['Start Station Name'] == trip['End Station Name']) or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == ''):
-            if trip['Trip  Duration'] == '0':
-                count_1 += 1
-            if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Bike Id'] == ''):
-                count_3 += 1
-            if trip['Start Station Name'] == trip['End Station Name']:
+        
+        
+        if trip['Trip  Duration'] == '0':
+            count_1 += 1
+        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Bike Id'] == ''):
+            count_3 += 1
+        if trip['Start Station Name'] == trip['End Station Name']:
                 count_4 += 1
+        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == ''):
+            pass
         else:
             # Add Station Info
             model.addStopConnection(analyzer, trip)
@@ -65,6 +68,9 @@ def loadData(analyzer):
     model.addConnections(analyzer)
     # Organize the bikes info
     model.addBikesMaxMin(analyzer)
+
+    model.addOutTripsMaxMin(analyzer)
+    
     return(count_1, count_2, count_3, count_4)
 
 # -----------------------------------------------------

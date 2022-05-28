@@ -74,8 +74,16 @@ def deltaTime(end, start):
 
 def optionOne(control):
     respuesta = controller.requirement1(control)
-    sublista = lt.subList(respuesta, 1, 5)
-    print(sublista)
+    for i in lt.iterator(respuesta):
+        station_id = i[0].split('-')[0]
+        station_name = i[0].split('-')[1]
+        outdegree = i[6]
+        suscribers_count = i[4]
+        tourist_count = i[3]
+        total_count = i[5]
+        hours = i[1]
+        dates = i[2]
+        print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
 
 def optionThree(control):
     #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
@@ -85,8 +93,6 @@ def optionThree(control):
     for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
         vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
         print("Componente: " + str(componente) + "Vertices: " ,vertices)
-
-            
 
 def optionFour(control):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
@@ -191,14 +197,15 @@ while True:
         print(f'There are {trips[3]} trips with self-referenced data')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
-        """
-        date = om.values(control['trips_dates'], '01/01/2021', '01/02/2021')
-        print(date)
-        """
-        #print(control['connections'])
-
+        
         delta_time = deltaTime(stop_time, start_time)
         print(delta_time)
+        #date = mp.get(control['out_stations'], '7543.0-Nassau St / Bellevue Ave')
+        #x = me.getValue(om.get(control['count_out_stations'], 16))
+        #print(mp.keySet(x))
+        #print(control['out_stations'])
+
+        
         
     elif int(inputs[0]) == 1:
         optionOne(control)
