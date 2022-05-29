@@ -111,10 +111,16 @@ def optionThree(control):
     for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
         numero_estaciones = me.getValue(mp.get(tabla_hash_componentes,componente))[0]
         viajes_inician = me.getValue(mp.get(tabla_hash_componentes,componente))[1]
+        viajes_inician = viajes_inician.split('-')
         viajes_terminan = me.getValue(mp.get(tabla_hash_componentes,componente))[2]
+        viajes_terminan = viajes_terminan.split('-')
         print("El número de estaciones del componente ", componente , " es : ", numero_estaciones)
-        print("El id y el nombre de la estación donde más viajes inician es: ", viajes_inician)
-        print("El id y el nombre de la estación donde más viajes terminan es: ", viajes_terminan)
+        print("El ID y el nombre de la estación donde más viajes inician es: ")
+        print("ID: ", viajes_inician[0])
+        print("Nombre: ", viajes_inician[1])
+        print("El ID y el nombre de la estación donde más viajes terminan es: ")
+        print("ID: ", viajes_terminan[0])
+        print("Nombre: ", viajes_terminan[1])
         print('--------------------------------------------------------------------------------------------------')
 
 def optionFour(control):
