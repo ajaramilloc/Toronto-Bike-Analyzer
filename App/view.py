@@ -85,6 +85,15 @@ def optionOne(control):
         dates = i[2]
         print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
 
+def optionTwo(control):
+    station_name = input('Enter the origin station: ')
+    min_stations = int(input('Enter the min number of stations: '))
+    max_time = int(input('Enter the max time: '))
+    routes = controller.requirement2(control, station_name, min_stations, max_time) 
+    for route in lt.iterator(routes):
+        print(route)
+        print('--------------------------------------------------------------------------------------------------')
+
 def optionThree(control):
     #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
     #print(control['components'])
@@ -98,12 +107,11 @@ def optionThree(control):
         print("El número de estaciones del componente ", componente , " es : ", numero_estaciones)
         print("El nombre de la estación donde más viajes inician es: ", viajes_inician)
         print("El nombre de la estación donde más viajes terminan es: ", viajes_terminan)
+
 def optionFour(control):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
-    origin_filter = origin_station.split(' -')[0]
     arrival_station = input('Enter arrival station: ') #Davenport Rd / Avenue Rd
-    arrival_filter = arrival_station.split(' -')[0]
-    path = controller.requirement4(control, origin_filter, arrival_filter)
+    path = controller.requirement4(control, origin_station, arrival_station)
     print(f'\nThe average time for the trip is {int(path[1])} minutes')
     for station in lt.iterator(path[0]):
         if station[0] != 0:
@@ -148,7 +156,7 @@ def optionFive(control):
     print('\n----------------------------------------------------------------------------------\n')
 
 def optionSix(control):
-    bike_id = input('Enter the bike id: ')
+    bike_id = input('Enter the bike id: ') #25
     bike_id_format = bike_id+'.0'
     bike = controller.requirement6(control, bike_id_format)
     print(f'\nTotal trips with the bike {bike_id}: {int(bike[0])}')
@@ -201,21 +209,24 @@ while True:
         print(f'There are {trips[3]} trips with self-referenced data')
         print(f'Only where charged {trips[1]} trips')
         print(f'In total are {trips[0] + trips[1]} trips\n')
+
+        vertices_list = control['vertices_list']
+        first_five = lt.subList(vertices_list, 1, 5)
+        for station in lt.iterator(first_five):
+            print(station)
+        print('\n-----------------------------------------------------------------------\n')
+        last_five = lt.subList(vertices_list, -4, 5)
+        for station in lt.iterator(last_five):
+            print(station)
         
         delta_time = deltaTime(stop_time, start_time)
         print(delta_time)
-        #date = mp.get(control['out_stations'], '7543.0-Nassau St / Bellevue Ave')
-        #x = me.getValue(om.get(control['count_out_stations'], 16))
-        #print(mp.keySet(x))
-        #print(control['out_stations'])
-
-        
-        
+       
     elif int(inputs[0]) == 1:
         optionOne(control)
         
     elif int(inputs[0]) == 2:
-        pass
+        optionTwo(control)
     
     elif int(inputs[0]) == 3:
         optionThree(control)

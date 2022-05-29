@@ -29,6 +29,7 @@ from DISClib.ADT import graph as gr
 from DISClib.ADT import stack
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.Algorithms.Graphs import dfs
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
@@ -44,6 +45,7 @@ assert cf
 def newAnalyzer():
     
     analyzer = {
+        'vertices_list': None,
         'connections': None,
         'stops': None,
         'trip_routes': None,
@@ -55,6 +57,7 @@ def newAnalyzer():
         'out_stations': None
     }
 
+    analyzer['vertices_list'] = lt.newList('ARRAY_LIST')
     analyzer['stops'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # stops info with average duration
     analyzer['trip_routes'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # key -> trip id / value -> trip info
     analyzer['stations_ids'] = mp.newMap(790, maptype='PROBING', loadfactor=0.5) # key -> station name / value -> station id
@@ -101,6 +104,8 @@ def addStopConnection(analyzer, trip):
     addTripsByDate(analyzer, trip_date, init_trip_hour, finish_trip_hour, trip, origin_format, arrival_format)
     # Add the bike info in the structures
     addBikeInfo(analyzer, trip['Bike Id'], trip, origin_format, arrival_format)
+
+    lt.addLast(analyzer['vertices_list'], trip)
 
 def addStop(analyzer, stop):
     """
@@ -496,6 +501,37 @@ def requirement1(analyzer):
             final_info = [j, [om.maxKey(hours), max_hours], [om.maxKey(dates), max_dates], tourist_count, suscribers_count, total_count, outdegree]
             lt.addLast(stations_list, final_info)
     return stations_list
+
+def requirement2(analyzer, origin_station, min_stations, max_time):
+    format_station = me.getValue(mp.get(analyzer['stations_formats'], origin_station))
+    routes = dfs.DepthFirstSearch(analyzer['connections'], format_station)
+    visited = routes['visited']
+    stations = mp.keySet(visited)
+    final_routes = lt.newList('ARRAY_LIST')
+    for station in lt.iterator(stations):
+        path = dfs.pathTo(routes, station)
+        if path is not None:
+            pathlen = stack.size(path)
+            if pathlen > min_stations:
+                stops = lt.newList('ARRAY_LIST')
+                time = 0
+                while (not stack.isEmpty(path)):
+                    stop = stack.pop(path)
+                    lt.addLast(stops, stop)
+                
+                for pos_1 in range (0, lt.size(stops)-1):
+                    pos_1+=1
+                    pos_2 = pos_1 + 1
+
+                    pos1 = lt.getElement(stops, pos_1)
+                    pos2 = lt.getElement(stops, pos_2)
+
+                    duration = gr.getEdge(analyzer['connections'], pos1, pos2)['weight']
+                    time += duration
+
+                if time < max_time:
+                    lt.addLast(final_routes, [time, stops])
+    return final_routes
 
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections'])

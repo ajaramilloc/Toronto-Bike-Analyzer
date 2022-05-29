@@ -83,6 +83,9 @@ def requirement0(analyzer):
 def requirement1(analyzer):
     return model.requirement1(analyzer)
 
+def requirement2(analyzer, origin_station, min_stations, max_time):
+    return model.requirement2(analyzer, origin_station, min_stations, max_time) 
+
 def requirement3(analyzer):
     return model.requirement3(analyzer)
 
