@@ -73,13 +73,13 @@ def addStopConnection(analyzer, trip):
     # Format stations names
     origin = trip['Start Station Name']
     if trip['Start Station Name'] == '':
-        trip['Start Station Name'] = 'UNKNOWN'
-    origin_id = float(trip['Start Station Id'])
+        origin = 'UNKNOWN'
+    origin_id = trip['Start Station Id']
     origin_format = f'{origin_id}-{origin}'
     arrival = trip['End Station Name']
     if trip['End Station Name'] == '':
-        trip['End Station Name'] = 'UNKNOWN'
-    arrival_id = float(trip['End Station Id'])
+        arrival = 'UNKNOWN'
+    arrival_id = trip['End Station Id'].split('.')[0]
     arrival_format = f'{arrival_id}-{arrival}'
     # Format trips dates
     trip_date = trip['Start Time'].split(' ')[0]
