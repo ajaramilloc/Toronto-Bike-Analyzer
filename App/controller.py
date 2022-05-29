@@ -58,7 +58,7 @@ def loadData(analyzer):
             count_3 += 1
         if trip['Start Station Name'] == trip['End Station Name']:
                 count_4 += 1
-        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == ''):
+        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == '' or trip['Start Station Name'] == trip['End Station Name']):
             pass
         else:
             # Add Station Info

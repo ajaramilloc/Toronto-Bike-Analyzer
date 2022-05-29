@@ -88,12 +88,16 @@ def optionOne(control):
 def optionThree(control):
     #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
     #print(control['components'])
-    tabla_hash_componentes = controller.requirement3(control)
-
+    tabla_hash_componentes = controller.requirement3(control) 
+    numero_componentes_conectados = lt.size(mp.keySet(tabla_hash_componentes))
+    print("El número total de componentes fuertemente conectados es: ", numero_componentes_conectados)
     for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
-        vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
-        print("Componente: " + str(componente) + "Vertices: " ,vertices)
-
+        numero_estaciones = me.getValue(mp.get(tabla_hash_componentes,componente))[0]
+        viajes_inician = me.getValue(mp.get(tabla_hash_componentes,componente))[1]
+        viajes_terminan = me.getValue(mp.get(tabla_hash_componentes,componente))[2]
+        print("El número de estaciones del componente ", componente , " es : ", numero_estaciones)
+        print("El nombre de la estación donde más viajes inician es: ", viajes_inician)
+        print("El nombre de la estación donde más viajes terminan es: ", viajes_terminan)
 def optionFour(control):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
     origin_filter = origin_station.split(' -')[0]

@@ -522,7 +522,6 @@ def requirement3(analyzer):
     for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
         vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
         numero_estaciones = lt.size(vertices)
-        print("Componente: " + str(componente) + "Vertices: " ,vertices)
         max_viaje_inicio = 0
         max_viaje_final = 0
         vertice_inicio = ""
@@ -538,7 +537,7 @@ def requirement3(analyzer):
                 max_viaje_final = gr.indegree(analyzer['connections'],vertice)
                 vertice_final = vertice
 
-        mp.put(tabla_componentes, componente, (vertice_inicio, vertice_final, numero_estaciones))
+        mp.put(tabla_componentes, componente, (numero_estaciones, vertice_inicio, vertice_final))
             
 
     return tabla_componentes
