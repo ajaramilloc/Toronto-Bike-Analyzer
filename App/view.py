@@ -105,8 +105,9 @@ def optionThree(control):
         viajes_inician = me.getValue(mp.get(tabla_hash_componentes,componente))[1]
         viajes_terminan = me.getValue(mp.get(tabla_hash_componentes,componente))[2]
         print("El número de estaciones del componente ", componente , " es : ", numero_estaciones)
-        print("El nombre de la estación donde más viajes inician es: ", viajes_inician)
-        print("El nombre de la estación donde más viajes terminan es: ", viajes_terminan)
+        print("El id y el nombre de la estación donde más viajes inician es: ", viajes_inician)
+        print("El id y el nombre de la estación donde más viajes terminan es: ", viajes_terminan)
+        print('--------------------------------------------------------------------------------------------------')
 
 def optionFour(control):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
