@@ -86,13 +86,21 @@ def optionOne(control):
         print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
 
 def optionTwo(control):
-    station_name = input('Enter the origin station: ')
-    min_stations = int(input('Enter the min number of stations: '))
-    max_time = int(input('Enter the max time: '))
+    station_name = input('Enter the origin station: ') #Roxborough St W / Yonge St
+    min_stations = int(input('Enter the min number of stations: ')) #5
+    max_time = int(input('Enter the max time: ')) #10000
     routes = controller.requirement2(control, station_name, min_stations, max_time) 
+    print(f'In total are {lt.size(routes)} routes available: \n')
     for route in lt.iterator(routes):
-        print(route)
-        print('--------------------------------------------------------------------------------------------------')
+        print(f'Total time -> {route[0]} | Total stations: {lt.size(route[1])}')
+        for station in lt.iterator(route[1]):
+            """
+            id = station.split['-'][0]
+            name = station.split['-'][1]
+            print(f'id -> {id} | name -> {name}')
+            """
+            print(station)
+        print('\n--------------------------------------------------------------------------------------------------\n')
 
 def optionThree(control):
     #print('El número de componentes conectados es: ' + str(controller.requirement3(control)))
