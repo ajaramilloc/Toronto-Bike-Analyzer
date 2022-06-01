@@ -436,6 +436,24 @@ def compareElements(element1, element2):
     else:
         return False
 
+def cmp_grado_componente(componente1, componente2):
+    grado_componente1 = componente1[0]
+    grado_componente2 = componente2[0]
+
+    if grado_componente1 > grado_componente2:
+        return True
+    else:
+        return False
+
+def cmpcomponentes(numero1, numero2):
+
+    if numero1 > me.getKey(numero2):
+        return 1
+    elif numero1 == me.getKey(numero2):
+        return 0
+    else:
+        return -1
+
 # -----------------------------------------------------
 # REQUIREMENTS FUNCTIONS
 # -----------------------------------------------------
@@ -473,7 +491,58 @@ def requirement1(analyzer):
             outdegree = gr.outdegree(graph, j)
             final_info = [j, [om.maxKey(hours), max_hours], [om.maxKey(dates), max_dates], tourist_count, suscribers_count, total_count, outdegree]
             lt.addLast(stations_list, final_info)
-    return stations_list
+    first_five_stations = lt.subList(stations_list, 1, 5)
+    return first_five_stations
+
+def requirement3(analyzer):
+    analyzer['components'] = scc.KosarajuSCC(analyzer['connections_digraph'])
+    num_elements = scc.connectedComponents(analyzer['components'])
+    mapa_componentes_conectados = analyzer['components']['idscc'] 
+
+    vertices = mp.keySet(mapa_componentes_conectados)
+
+    tabla_hash_componentes = mp.newMap(num_elements, maptype="CHAINING", loadfactor=2, comparefunction=cmpcomponentes)
+
+    for vertice in lt.iterator(vertices):
+        num_componente = me.getValue(mp.get(mapa_componentes_conectados,vertice))
+
+        if mp.contains(tabla_hash_componentes,num_componente):
+            lt.addLast(me.getValue(mp.get(tabla_hash_componentes,num_componente)), vertice)
+
+        else:
+            lista_vertices = lt.newList()
+            lt.addLast(lista_vertices, vertice)
+            mp.put(tabla_hash_componentes,num_componente,lista_vertices)
+
+    tabla_componentes = mp.newMap(num_elements, maptype="CHAINING", loadfactor=2, comparefunction=cmpcomponentes)
+
+    for componente in lt.iterator(mp.keySet(tabla_hash_componentes)):
+        vertices = me.getValue(mp.get(tabla_hash_componentes,componente))
+        numero_estaciones = lt.size(vertices)
+        max_viaje_inicio = 0
+        max_viaje_final = 0
+        vertice_inicio = ""
+        vertice_final = ""
+        for vertice in lt.iterator(vertices):
+            grado_inicio = gr.outdegree(analyzer['connections_digraph'],vertice)
+            grado_termina = gr.indegree(analyzer['connections_digraph'],vertice)
+
+            if grado_inicio >= max_viaje_inicio:
+                max_viaje_inicio = gr.outdegree(analyzer['connections_digraph'],vertice)
+                vertice_inicio = vertice
+            if grado_termina >= max_viaje_final:
+                max_viaje_final = gr.indegree(analyzer['connections_digraph'],vertice)
+                vertice_final = vertice
+
+        mp.put(tabla_componentes, componente, (numero_estaciones, vertice_inicio, vertice_final))
+            
+    lista_componentes = lt.newList()
+
+    for componente in lt.iterator(mp.keySet(tabla_componentes)):
+        lt.addLast(lista_componentes, me.getValue(mp.get(tabla_componentes,componente)))
+
+    lista_sorteada = sortList(lista_componentes, cmp_grado_componente)
+    return lista_sorteada
 
 def requirement4(analyzer, origin_station, arrival_station):
     origin_format = me.getValue(mp.get(analyzer['stations_format_map'], origin_station))

@@ -64,6 +64,25 @@ def optionOne(analyzer):
         dates = station[2]
         print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
 
+def optionThree(analyzer):
+    lista_componentes_conectados = controller.requirement3(analyzer) 
+    numero_componentes_conectados = lt.size(lista_componentes_conectados)
+    print("El número total de componentes fuertemente conectados es: ", numero_componentes_conectados)
+    if numero_componentes_conectados < 6:
+        for componente in lt.iterator(lista_componentes_conectados):
+            numero_estaciones = componente[0]
+            viajes_inician = componente[1]
+            viajes_inician = viajes_inician.split('-')
+            viajes_terminan = componente[2]
+            viajes_terminan = viajes_terminan.split('-')
+            print("El número de estaciones del componente es :", numero_estaciones)
+            print("El ID y el nombre de la estación donde más viajes inician es: ")
+            print("ID: ", viajes_inician[0])
+            print("Nombre: ", viajes_inician[1])
+            print("El ID y el nombre de la estación donde más viajes terminan es: ")
+            print("ID: ", viajes_terminan[0])
+            print("Nombre: ", viajes_terminan[1])
+            print('--------------------------------------------------------------------------------------------------')
 
 def optionFour(analyzer):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
@@ -138,7 +157,7 @@ while True:
         pass
     
     elif int(inputs[0]) == 3:
-        pass
+        optionThree(analyzer)
 
     elif int(inputs[0]) == 4:
         optionFour(analyzer)

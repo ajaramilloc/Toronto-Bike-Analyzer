@@ -65,6 +65,9 @@ def charge(analyzer):
 def requirement1(analyzer):
     return model.requirement1(analyzer)
 
+def requirement3(analyzer):
+    return model.requirement3(analyzer)
+
 def requirement4(analyzer, origin_station, arrival_station):
     return model.requirement4(analyzer, origin_station, arrival_station)
 
