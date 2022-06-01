@@ -25,7 +25,7 @@ def newAnalyzer():
         'stations_info': None,
         'routes_average_map': None,
         'bikes_trips_map': None,
-        'out_stations': None,
+        'out_trips_tree': None,
         'out_trips_tree': None
         
     }
@@ -36,7 +36,7 @@ def newAnalyzer():
     analyzer['stations_info'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['routes_average_map'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['bikes_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
-    analyzer['out_stations'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
+    analyzer['out_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
 
     return analyzer
 
@@ -146,8 +146,8 @@ def addRoutesAverage(analyzer, origin_format, arrival_format, trip):
         mp.put(analyzer['routes_average_map'], origin_format, arrivals)
 
 def addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip):
-    if mp.contains(analyzer['out_stations'], origin_format):
-        station_info = me.getValue(mp.get(analyzer['out_stations'], origin_format))
+    if mp.contains(analyzer['out_trips_map'], origin_format):
+        station_info = me.getValue(mp.get(analyzer['out_trips_map'], origin_format))
 
         suscribers_count = me.getValue(mp.get(station_info, 'suscribers_count'))
         tourists_count = me.getValue(mp.get(station_info, 'tourists_count'))
@@ -199,7 +199,7 @@ def addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip):
         mp.put(num_trips, trip_date, [1])
         mp.put(station_info, 'num_trips', num_trips)
 
-        mp.put(analyzer['out_stations'], origin_format, station_info)
+        mp.put(analyzer['out_trips_map'], origin_format, station_info)
 
 def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
     """
@@ -249,7 +249,6 @@ def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
 # -----------------------------------------------------
 # UNIFY FUNCTIONS
 # -----------------------------------------------------
-
     
 def addConnectionsDigraph(analyzer):
     """
@@ -283,11 +282,11 @@ def addConnectionsGraph(analyzer):
                     gr.addEdge(analyzer['connections_graph'], origin_station, arrival_station, tripA['weight'])
 
 def unifyOutTrips(analyzer):
-    stations = mp.keySet(analyzer['out_stations'])
+    stations = mp.keySet(analyzer['out_trips_map'])
     total_trips = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
 
     for station in lt.iterator(stations):
-        station_info = me.getValue(mp.get(analyzer['out_stations'], station))
+        station_info = me.getValue(mp.get(analyzer['out_trips_map'], station))
         total_count = me.getValue(mp.get(station_info, 'total_count'))[0]
 
         trips_hour_map = me.getValue(mp.get(station_info, 'out_hours'))
@@ -333,7 +332,7 @@ def unifyOutTrips(analyzer):
             mp.put(stations_map, station, station_info)
             om.put(total_trips, total_count, stations_map)
 
-    analyzer['count_out_stations'] = total_trips
+    analyzer['out_trips_tree'] = total_trips
 
 def unifyBikesInfo(analyzer):
     """
@@ -454,8 +453,8 @@ def charge(analyzer):
 
 def requirement1(analyzer):
     graph = analyzer['connections_digraph']
-    out_stations = analyzer['count_out_stations']
-    count_out_stations = om.keySet(analyzer['count_out_stations'])
+    out_stations = analyzer['out_trips_tree']
+    count_out_stations = om.keySet(analyzer['out_trips_tree'])
     sorted_count_out_stations = sortList(count_out_stations, compareElements)
     first_five = lt.subList(sorted_count_out_stations, 1, 5)
     stations_list = lt.newList('ARRAY_LIST')
