@@ -63,8 +63,9 @@ def addStop(analyzer, trip):
     # Format trips dates
     init_trip_date_time = trip['Start Time']
     finish_trip_date_time = trip['End Time']
-    trip_date = formatDateTime(trip['Start Time'])[0]
+    init_trip_date = formatDateTime(trip['Start Time'])[0]
     init_trip_hour = formatDateTime(trip['Start Time'])[1]
+    finish_trip_date = formatDateTime(trip['End Time'])[0]
     finish_trip_hour = formatDateTime(trip['End Time'])[1]
 
     # Add station to the digraph
@@ -86,20 +87,20 @@ def addStop(analyzer, trip):
 
     # Add out trip info
 
-    addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip)
+    addOutTrips(analyzer, origin_format, init_trip_date, init_trip_hour, trip)
 
     if trip['User Type'] == 'Annual Member':
         # Add out trip info by date
 
-        addTripsByDate(analyzer['date_out_trips_tree'], origin_format, trip_date, init_trip_hour)
+        addTripsByDate(analyzer['date_out_trips_tree'], origin_format, init_trip_date, init_trip_hour)
 
         # Add in trip info by date
 
-        addTripsByDate(analyzer['date_in_trips_tree'], arrival_format, trip_date, finish_trip_hour)
+        addTripsByDate(analyzer['date_in_trips_tree'], arrival_format, finish_trip_date, finish_trip_hour)
 
         # Add trip date
 
-        addDateCount(analyzer, trip_date, trip)
+        addDateCount(analyzer, init_trip_date, finish_trip_date, trip)
 
     # Add bike info
 
@@ -133,24 +134,31 @@ def addStationFormat(analyzer, station_name, station_format):
     if not mp.contains(analyzer['stations_format_map'], station_name):
         mp.put(analyzer['stations_format_map'], station_name, station_format)
 
-def addDateCount(analyzer, trip_date, trip):
-    if om.contains(analyzer['dates_tree'], trip_date):
-        date_info = me.getValue(mp.get(analyzer['dates_tree'], trip_date))
+def addDateCount(analyzer, init_trip_date, finish_trip_date, trip):
+    # ----------------------------------------------------------------------------------------------- #
+    def addDateInfoTree(tree, date, trip):
+        if om.contains(tree, date):
+            date_info = me.getValue(mp.get(tree, date))
 
-        time_count = me.getValue(mp.get(date_info, 'time_count'))
-        time_count[0] += int(trip['Trip  Duration'])
+            time_count = me.getValue(mp.get(date_info, 'time_count'))
+            time_count[0] += int(trip['Trip  Duration'])
 
-        trips_count = me.getValue(mp.get(date_info, 'trips_count'))
-        trips_count[0] += 1
+            trips_count = me.getValue(mp.get(date_info, 'trips_count'))
+            trips_count[0] += 1
+        else:
+            date_info = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+            time_count = [int(trip['Trip  Duration'])]
+            trips_count = [1]
+
+            mp.put(date_info, 'time_count', time_count)
+            mp.put(date_info, 'trips_count', trips_count)
+
+            om.put(tree, date, date_info)
+    # ----------------------------------------------------------------------------------------------- #
+    if init_trip_date == finish_trip_date:
+        addDateInfoTree(analyzer['dates_tree'], init_trip_date, trip)
     else:
-        date_info = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
-        time_count = [int(trip['Trip  Duration'])]
-        trips_count = [1]
-
-        mp.put(date_info, 'time_count', time_count)
-        mp.put(date_info, 'trips_count', trips_count)
-
-        om.put(analyzer['dates_tree'], trip_date, date_info)
+        addDateInfoTree(analyzer['dates_tree'], finish_trip_date, trip)
 
 def addRoutesAverage(analyzer, origin_format, arrival_format, trip):
     """
@@ -473,7 +481,8 @@ def unifyBikesInfo(analyzer):
 # -----------------------------------------------------
 
 def formatStation(station_id, station_name):
-    station_format = f'{int(float(station_id))}-{station_name}'
+    format_id = station_id.split('.')[0]
+    station_format = f'{format_id}-{station_name}'
     return station_format
 
 def formatDateTime(trip_date_time):

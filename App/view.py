@@ -69,8 +69,8 @@ def optionTwo(analyzer):
     routes = controller.requirement2(analyzer, origin_station)
 
 def optionThree(control):
-    
     lista_componentes_conectados = controller.requirement3(control) 
+    print(lista_componentes_conectados)
     numero_componentes_conectados = lt.size(lista_componentes_conectados)
     print("El número total de componentes fuertemente conectados es: ", numero_componentes_conectados)
     if numero_componentes_conectados < 6:
@@ -91,7 +91,14 @@ def optionThree(control):
 
     else: 
         lista_primeros3 = lt.subList(lista_componentes_conectados,1,3)
-        lista_ultimos3 = lt.subList(lista_componentes_conectados,-2,3)
+        lista_ultimos3 = lt.newList('ARRAY_LIST')
+        for pos in range(1, numero_componentes_conectados):
+            if pos < numero_componentes_conectados - 3:
+                pass
+            else:
+                component = lt.getElement(lista_componentes_conectados, pos)
+                lt.addLast(lista_ultimos3, component)
+
         for componente in lt.iterator(lista_primeros3):
             numero_estaciones = componente[0]
             viajes_inician = componente[1]
@@ -121,10 +128,6 @@ def optionThree(control):
             print("Nombre: ", viajes_terminan[1])
             print('--------------------------------------------------------------------------------------------------')
         
-        
-
-    for componente in lt.iterator(lista_componentes_conectados):
-        print(componente)
 
 def optionFour(analyzer):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
