@@ -321,6 +321,11 @@ def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
 
         mp.put(analyzer['bikes_trips_map'], bike_id, bike)
 
+def addTripsByDateTime(analyzer, station_format, trip_date_time):
+    if mp.contains(analyzer['stations_info'], station_format):
+        pass
+    else:
+        station_info = mp.newMap(3, maptype='PROBING')
 # -----------------------------------------------------
 # UNIFY FUNCTIONS
 # -----------------------------------------------------
@@ -540,6 +545,17 @@ def compareDates(date1, date2):
     else:
         return -1
 
+def compareDatesTime(date1, date2):
+    date_format1 = time.strptime(str(date1), "%m/%d/%Y %H:%M")
+    date_format2 = time.strptime(str(date2), "%m/%d/%Y %H:%M")
+
+    if (date_format1 == date_format2):
+        return 0
+    elif (date_format1 > date_format2):
+        return 1
+    else:
+        return -1
+
 # -----------------------------------------------------
 # REQUIREMENTS FUNCTIONS
 # -----------------------------------------------------
@@ -652,6 +668,58 @@ def requirement4(analyzer, origin_station, arrival_station):
     return list_path, time_count
 
 def requirement5(analyzer, init_date, finish_date):
+    # -------------------------------------------------------------------------------------- #
+    def unifyDatesInterval(tree, init_date, finish_date):
+        dates_interval = om.values(tree, init_date, finish_date)
+        interval = mp.newMap(2, maptype='PROBING', loadfactor=0.5)
+        total_stations = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+        total_hours = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+        for date in lt.iterator(dates_interval):
+            hours = mp.keySet(me.getValue(mp.get(date, 'hours')))
+            hours_map = me.getValue(mp.get(date, 'hours'))
+            for hour in lt.iterator(hours):
+                num_trips = me.getValue(mp.get(hours_map, hour))
+                num_trips = num_trips[0]
+                if mp.contains(total_hours, hour):
+                    hour_info = me.getValue(mp.get(total_hours, hour))
+                    hour_info[0] += num_trips
+                else:
+                    mp.put(total_hours, hour, [num_trips])
+
+            stations = mp.keySet(me.getValue(mp.get(date, 'stations')))
+            stations_map = me.getValue(mp.get(date, 'stations'))
+            for station in lt.iterator(stations):
+                num_trips = me.getValue(mp.get(stations_map, station))
+                num_trips = num_trips[0]
+                if mp.contains(total_stations, station):
+                    station_info = me.getValue(mp.get(total_stations, station))
+                    station_info[0] += num_trips
+                else:
+                    mp.put(total_stations, station, [num_trips])
+
+        mp.put(interval, 'total_stations', total_stations)
+        mp.put(interval, 'total_hours', total_hours)
+
+        return interval
+    # -------------------------------------------------------------------------------------- #
+    def organizeDatesInterval(map, property):
+        property_map = me.getValue(mp.get(map, f'{property}'))
+        property_key_set = mp.keySet(property_map)
+        property_tree = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+        for element in lt.iterator(property_key_set):
+            property_count = me.getValue(mp.get(property_map, element))
+            property_count = property_count[0]
+            if om.contains(property_tree, property_count):
+                property_list = me.getValue(mp.get(property_tree, property_count))
+                lt.addLast(property_list, element)
+            else:
+                property_list = lt.newList('ARRAY_LIST')
+                lt.addLast(property_list, element)
+                om.put(property_tree, property_count, property_list)
+
+        return property_tree
+    # -------------------------------------------------------------------------------------- #
     interval_dates = om.values(analyzer['dates_tree'], init_date, finish_date)
     total_time = 0
     total_trips = 0
@@ -698,54 +766,3 @@ def requirement6(analyzer, bike_id):
     max_arrival_stations = om.get(arrival_stations, max_arrival)
 
     return num_trips, total_duration, max_origin_stations, max_arrival_stations
-
-def unifyDatesInterval(tree, init_date, finish_date):
-    dates_interval = om.values(tree, init_date, finish_date)
-    interval = mp.newMap(2, maptype='PROBING', loadfactor=0.5)
-    total_stations = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    total_hours = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
-    for date in lt.iterator(dates_interval):
-        hours = mp.keySet(me.getValue(mp.get(date, 'hours')))
-        hours_map = me.getValue(mp.get(date, 'hours'))
-        for hour in lt.iterator(hours):
-            num_trips = me.getValue(mp.get(hours_map, hour))
-            num_trips = num_trips[0]
-            if mp.contains(total_hours, hour):
-                hour_info = me.getValue(mp.get(total_hours, hour))
-                hour_info[0] += num_trips
-            else:
-                mp.put(total_hours, hour, [num_trips])
-
-        stations = mp.keySet(me.getValue(mp.get(date, 'stations')))
-        stations_map = me.getValue(mp.get(date, 'stations'))
-        for station in lt.iterator(stations):
-            num_trips = me.getValue(mp.get(stations_map, station))
-            num_trips = num_trips[0]
-            if mp.contains(total_stations, station):
-                station_info = me.getValue(mp.get(total_stations, station))
-                station_info[0] += num_trips
-            else:
-                mp.put(total_stations, station, [num_trips])
-
-    mp.put(interval, 'total_stations', total_stations)
-    mp.put(interval, 'total_hours', total_hours)
-
-    return interval
-
-def organizeDatesInterval(map, property):
-    property_map = me.getValue(mp.get(map, f'{property}'))
-    property_key_set = mp.keySet(property_map)
-    property_tree = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
-
-    for element in lt.iterator(property_key_set):
-        property_count = me.getValue(mp.get(property_map, element))
-        property_count = property_count[0]
-        if om.contains(property_tree, property_count):
-            property_list = me.getValue(mp.get(property_tree, property_count))
-            lt.addLast(property_list, element)
-        else:
-            property_list = lt.newList('ARRAY_LIST')
-            lt.addLast(property_list, element)
-            om.put(property_tree, property_count, property_list)
-
-    return property_tree
