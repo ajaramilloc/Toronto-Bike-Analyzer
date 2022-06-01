@@ -65,11 +65,17 @@ def charge(analyzer):
 def requirement1(analyzer):
     return model.requirement1(analyzer)
 
+def requirement2(analyzer, origin_station):
+    return model.requirement2(analyzer, origin_station)
+
 def requirement3(analyzer):
     return model.requirement3(analyzer)
 
 def requirement4(analyzer, origin_station, arrival_station):
     return model.requirement4(analyzer, origin_station, arrival_station)
+
+def requirement5(analyzer, init_date, finish_date):
+    return model.requirement5(analyzer, init_date, finish_date)
 
 def requirement6(analyzer, bike_id):
     return model.requirement6(analyzer, bike_id)

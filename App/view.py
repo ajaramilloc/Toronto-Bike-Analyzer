@@ -64,8 +64,13 @@ def optionOne(analyzer):
         dates = station[2]
         print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
 
-def optionThree(analyzer):
-    lista_componentes_conectados = controller.requirement3(analyzer) 
+def optionTwo(analyzer):
+    origin_station = input('Enter origin station: ')
+    routes = controller.requirement2(analyzer, origin_station)
+
+def optionThree(control):
+    
+    lista_componentes_conectados = controller.requirement3(control) 
     numero_componentes_conectados = lt.size(lista_componentes_conectados)
     print("El número total de componentes fuertemente conectados es: ", numero_componentes_conectados)
     if numero_componentes_conectados < 6:
@@ -84,6 +89,43 @@ def optionThree(analyzer):
             print("Nombre: ", viajes_terminan[1])
             print('--------------------------------------------------------------------------------------------------')
 
+    else: 
+        lista_primeros3 = lt.subList(lista_componentes_conectados,1,3)
+        lista_ultimos3 = lt.subList(lista_componentes_conectados,-2,3)
+        for componente in lt.iterator(lista_primeros3):
+            numero_estaciones = componente[0]
+            viajes_inician = componente[1]
+            viajes_inician = viajes_inician.split('-')
+            viajes_terminan = componente[2]
+            viajes_terminan = viajes_terminan.split('-')
+            print("El número de estaciones del componente es :", numero_estaciones)
+            print("El ID y el nombre de la estación donde más viajes inician es: ")
+            print("ID: ", viajes_inician[0])
+            print("Nombre: ", viajes_inician[1])
+            print("El ID y el nombre de la estación donde más viajes terminan es: ")
+            print("ID: ", viajes_terminan[0])
+            print("Nombre: ", viajes_terminan[1])
+            print('--------------------------------------------------------------------------------------------------')
+        for componente in lt.iterator(lista_ultimos3):
+            numero_estaciones = componente[0]
+            viajes_inician = componente[1]
+            viajes_inician = viajes_inician.split('-')
+            viajes_terminan = componente[2]
+            viajes_terminan = viajes_terminan.split('-')
+            print("El número de estaciones del componente es :", numero_estaciones)
+            print("El ID y el nombre de la estación donde más viajes inician es: ")
+            print("ID: ", viajes_inician[0])
+            print("Nombre: ", viajes_inician[1])
+            print("El ID y el nombre de la estación donde más viajes terminan es: ")
+            print("ID: ", viajes_terminan[0])
+            print("Nombre: ", viajes_terminan[1])
+            print('--------------------------------------------------------------------------------------------------')
+        
+        
+
+    for componente in lt.iterator(lista_componentes_conectados):
+        print(componente)
+
 def optionFour(analyzer):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
     arrival_station = input('Enter arrival station: ') #Davenport Rd / Avenue Rd
@@ -94,6 +136,43 @@ def optionFour(analyzer):
             print(f'Station -> {station[1]} / Time for next station -> {int(station[0])} minutes')
         else:
             print(f'Last Station -> {station[1]}')
+
+def optionFive(analyzer):
+    init_date = input('Enter the initial date: ')
+    finish_date = input('Enter the finish date: ')
+    interval = controller.requirement5(analyzer, init_date, finish_date)
+    out_hours = interval[0]
+    out_stations = interval[1]
+    in_hours = interval[2]
+    in_stations = interval[3]
+    total_time = interval[4]
+    total_trips = interval[5]
+
+    print(f'\nIn total are {total_trips} trips between {init_date} - {finish_date}')
+    print(f'In total all the trips duration is {total_time}\n')
+
+    print('\nOUT TRIPS INFO:')
+    print('-------------------------------------------------------------------------------------')
+
+    print(f'\nThe station(s) with more out trips is:')
+    for station in lt.iterator(out_stations[1]):
+        print(f'{station} with {out_stations[0]} trips')
+
+    print(f'\nThe hour with more out trips is: ')
+    for hour in lt.iterator(out_hours[1]):
+        print(f'{hour} with {out_hours[0]} trips')
+
+    print('\nIN TRIPS INFO:')
+    print('-------------------------------------------------------------------------------------')
+
+    print(f'\nThe station(s) with more in trips is:')
+    for station in lt.iterator(in_stations[1]):
+        print(f'{station} with {in_stations[0]} trips')
+
+    print(f'\nThe hour with more in trips is: ')
+    for hour in lt.iterator(in_hours[1]):
+        print(f'{hour} with {in_hours[0]} trips')
+    print('\n-------------------------------------------------------------------------------------\n')
 
 def optionSix(analyzer):
     bike_id = int(float(input('Enter the bike id: '))) #25
@@ -154,7 +233,7 @@ while True:
         optionOne(analyzer)
         
     elif int(inputs[0]) == 2:
-        pass
+        optionTwo(analyzer)
     
     elif int(inputs[0]) == 3:
         optionThree(analyzer)
@@ -163,7 +242,7 @@ while True:
         optionFour(analyzer)
 
     elif int(inputs[0]) == 5:
-        pass
+        optionFive(analyzer)
         
     elif int(inputs[0]) == 6:
         optionSix(analyzer)

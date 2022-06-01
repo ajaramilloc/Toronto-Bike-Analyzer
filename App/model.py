@@ -3,6 +3,7 @@ from DISClib.ADT import graph as gr
 from DISClib.ADT import stack
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
+from DISClib.Algorithms.Graphs import prim
 from DISClib.Algorithms.Graphs import dfs
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
@@ -79,10 +80,6 @@ def addStop(analyzer, trip):
     addStationFormat(analyzer, trip['Start Station Name'], origin_format)
     addStationFormat(analyzer, trip['End Station Name'], arrival_format)
 
-    # Add trip date
-
-    addDateCount(analyzer, trip_date, trip)
-
     # Calculates route average
 
     addRoutesAverage(analyzer, origin_format, arrival_format, trip)
@@ -91,13 +88,18 @@ def addStop(analyzer, trip):
 
     addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip)
 
-    # Add out trip info by date
+    if trip['User Type'] == 'Annual Member':
+        # Add out trip info by date
 
-    addTripsByDate(analyzer['date_out_trips_tree'], origin_format, trip_date, init_trip_hour)
+        addTripsByDate(analyzer['date_out_trips_tree'], origin_format, trip_date, init_trip_hour)
 
-    # Add in trip info by date
+        # Add in trip info by date
 
-    addTripsByDate(analyzer['date_in_trips_tree'], arrival_format, trip_date, finish_trip_hour)
+        addTripsByDate(analyzer['date_in_trips_tree'], arrival_format, trip_date, finish_trip_hour)
+
+        # Add trip date
+
+        addDateCount(analyzer, trip_date, trip)
 
     # Add bike info
 
@@ -578,6 +580,12 @@ def requirement1(analyzer):
     first_five_stations = lt.subList(stations_list, 1, 5)
     return first_five_stations
 
+def requirement2(analyzer, origin_station):
+    origin_format = me.getValue(mp.get(analyzer['stations_format_map'], origin_station))
+    analyzer['routes'] = prim.PrimMST(analyzer['connections_graph'], origin_format)
+    routes = analyzer['routes']['mst']
+    print(routes)
+
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections_digraph'])
     num_elements = scc.connectedComponents(analyzer['components'])
@@ -643,6 +651,38 @@ def requirement4(analyzer, origin_station, arrival_station):
     lt.addLast(list_path, (0, f'{arrival_format}'))
     return list_path, time_count
 
+def requirement5(analyzer, init_date, finish_date):
+    interval_dates = om.values(analyzer['dates_tree'], init_date, finish_date)
+    total_time = 0
+    total_trips = 0
+    for date in lt.iterator(interval_dates):
+        time_count = me.getValue(mp.get(date, 'time_count'))[0]
+        total_time += time_count
+        trips_count = me.getValue(mp.get(date, 'trips_count'))[0]
+        total_trips += trips_count
+
+    out_dates = analyzer['date_out_trips_tree']
+    out_dates_interval = unifyDatesInterval(out_dates, init_date, finish_date)
+
+    out_dates_total_hours_tree = organizeDatesInterval(out_dates_interval, 'total_hours')
+    max_out_hours = om.maxKey(out_dates_total_hours_tree)
+    max_out_hours_info = me.getValue(om.get(out_dates_total_hours_tree, max_out_hours))
+    out_dates_total_stations_tree = organizeDatesInterval(out_dates_interval, 'total_stations')
+    max_out_stations = om.maxKey(out_dates_total_stations_tree)
+    max_out_stations_info = me.getValue(om.get(out_dates_total_stations_tree, max_out_stations))
+
+    in_dates = analyzer['date_in_trips_tree']
+    in_dates_interval = unifyDatesInterval(in_dates, init_date, finish_date)
+
+    in_dates_total_hours_tree = organizeDatesInterval(in_dates_interval, 'total_hours')
+    max_in_hours = om.maxKey(in_dates_total_hours_tree)
+    max_in_hours_info = me.getValue(om.get(in_dates_total_hours_tree, max_in_hours))
+    in_dates_total_stations_tree = organizeDatesInterval(in_dates_interval, 'total_stations')
+    max_in_stations = om.maxKey(in_dates_total_stations_tree)
+    max_in_stations_info = me.getValue(om.get(in_dates_total_stations_tree, max_in_stations))
+
+    return [max_out_hours, max_out_hours_info], [max_out_stations, max_out_stations_info], [max_in_hours, max_in_hours_info], [max_in_stations, max_in_stations_info], total_time, total_trips
+
 def requirement6(analyzer, bike_id):
     bike = me.getValue(mp.get(analyzer['bikes_trips_map'], bike_id))
     bike_info = me.getValue(mp.get(bike, 'bike_info'))
@@ -659,3 +699,53 @@ def requirement6(analyzer, bike_id):
 
     return num_trips, total_duration, max_origin_stations, max_arrival_stations
 
+def unifyDatesInterval(tree, init_date, finish_date):
+    dates_interval = om.values(tree, init_date, finish_date)
+    interval = mp.newMap(2, maptype='PROBING', loadfactor=0.5)
+    total_stations = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+    total_hours = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+    for date in lt.iterator(dates_interval):
+        hours = mp.keySet(me.getValue(mp.get(date, 'hours')))
+        hours_map = me.getValue(mp.get(date, 'hours'))
+        for hour in lt.iterator(hours):
+            num_trips = me.getValue(mp.get(hours_map, hour))
+            num_trips = num_trips[0]
+            if mp.contains(total_hours, hour):
+                hour_info = me.getValue(mp.get(total_hours, hour))
+                hour_info[0] += num_trips
+            else:
+                mp.put(total_hours, hour, [num_trips])
+
+        stations = mp.keySet(me.getValue(mp.get(date, 'stations')))
+        stations_map = me.getValue(mp.get(date, 'stations'))
+        for station in lt.iterator(stations):
+            num_trips = me.getValue(mp.get(stations_map, station))
+            num_trips = num_trips[0]
+            if mp.contains(total_stations, station):
+                station_info = me.getValue(mp.get(total_stations, station))
+                station_info[0] += num_trips
+            else:
+                mp.put(total_stations, station, [num_trips])
+
+    mp.put(interval, 'total_stations', total_stations)
+    mp.put(interval, 'total_hours', total_hours)
+
+    return interval
+
+def organizeDatesInterval(map, property):
+    property_map = me.getValue(mp.get(map, f'{property}'))
+    property_key_set = mp.keySet(property_map)
+    property_tree = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
+    for element in lt.iterator(property_key_set):
+        property_count = me.getValue(mp.get(property_map, element))
+        property_count = property_count[0]
+        if om.contains(property_tree, property_count):
+            property_list = me.getValue(mp.get(property_tree, property_count))
+            lt.addLast(property_list, element)
+        else:
+            property_list = lt.newList('ARRAY_LIST')
+            lt.addLast(property_list, element)
+            om.put(property_tree, property_count, property_list)
+
+    return property_tree
