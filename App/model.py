@@ -26,7 +26,9 @@ def newAnalyzer():
         'routes_average_map': None,
         'bikes_trips_map': None,
         'out_trips_tree': None,
-        'out_trips_tree': None
+        'date_out_trips_tree': None,
+        'date_in_trips_tree': None,
+        'dates_tree': None
         
     }
 
@@ -37,6 +39,9 @@ def newAnalyzer():
     analyzer['routes_average_map'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['bikes_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
     analyzer['out_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
+    analyzer['date_out_trips_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
+    analyzer['date_in_trips_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
+    analyzer['dates_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
 
     return analyzer
 
@@ -74,6 +79,10 @@ def addStop(analyzer, trip):
     addStationFormat(analyzer, trip['Start Station Name'], origin_format)
     addStationFormat(analyzer, trip['End Station Name'], arrival_format)
 
+    # Add trip date
+
+    addDateCount(analyzer, trip_date, trip)
+
     # Calculates route average
 
     addRoutesAverage(analyzer, origin_format, arrival_format, trip)
@@ -81,6 +90,14 @@ def addStop(analyzer, trip):
     # Add out trip info
 
     addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip)
+
+    # Add out trip info by date
+
+    addTripsByDate(analyzer['date_out_trips_tree'], origin_format, trip_date, init_trip_hour)
+
+    # Add in trip info by date
+
+    addTripsByDate(analyzer['date_in_trips_tree'], arrival_format, trip_date, finish_trip_hour)
 
     # Add bike info
 
@@ -113,6 +130,25 @@ def addStationFormat(analyzer, station_name, station_format):
     """
     if not mp.contains(analyzer['stations_format_map'], station_name):
         mp.put(analyzer['stations_format_map'], station_name, station_format)
+
+def addDateCount(analyzer, trip_date, trip):
+    if om.contains(analyzer['dates_tree'], trip_date):
+        date_info = me.getValue(mp.get(analyzer['dates_tree'], trip_date))
+
+        time_count = me.getValue(mp.get(date_info, 'time_count'))
+        time_count[0] += int(trip['Trip  Duration'])
+
+        trips_count = me.getValue(mp.get(date_info, 'trips_count'))
+        trips_count[0] += 1
+    else:
+        date_info = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+        time_count = [int(trip['Trip  Duration'])]
+        trips_count = [1]
+
+        mp.put(date_info, 'time_count', time_count)
+        mp.put(date_info, 'trips_count', trips_count)
+
+        om.put(analyzer['dates_tree'], trip_date, date_info)
 
 def addRoutesAverage(analyzer, origin_format, arrival_format, trip):
     """
@@ -191,7 +227,7 @@ def addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip):
         format = init_trip_hour.split(':')[0]
         hour_format = f'{format}:00 - {format}:59'
 
-        out_hours = mp.newMap(15, maptype='PROBING', loadfactor=0.5)
+        out_hours = mp.newMap(24, maptype='PROBING', loadfactor=0.5)
         mp.put(out_hours, hour_format, [1])
         mp.put(station_info, 'out_hours', out_hours)
 
@@ -200,6 +236,43 @@ def addOutTrips(analyzer, origin_format, trip_date, init_trip_hour, trip):
         mp.put(station_info, 'num_trips', num_trips)
 
         mp.put(analyzer['out_trips_map'], origin_format, station_info)
+
+def addTripsByDate(tree, station_format, trip_date, trip_hour):
+    if om.contains(tree, trip_date):
+        date_info = me.getValue(mp.get(tree, trip_date))
+
+        hours = me.getValue(mp.get(date_info, 'hours'))
+        format = trip_hour.split(':')[0]
+        hour_format = f'{format}:00 - {format}:59'
+        if mp.contains(hours, hour_format):
+            hour = me.getValue(mp.get(hours, hour_format))
+            hour[0] += 1
+        else:
+            mp.put(hours, hour_format, [1])
+
+        stations = me.getValue(mp.get(date_info, 'stations'))
+        if mp.contains(stations, station_format):
+            station = me.getValue(mp.get(stations, station_format))
+            station[0] += 1
+        else:
+            mp.put(stations, station_format, [1])
+
+    else:
+        date_info = mp.newMap(4, maptype='PROBING', loadfactor=0.5)
+
+        format = trip_hour.split(':')[0]
+        hour_format = f'{format}:00 - {format}:59'
+
+        hours = mp.newMap(24, maptype='PROBING', loadfactor=0.5)
+        mp.put(hours, hour_format, [1])
+        mp.put(date_info, 'hours', hours)
+
+        stations = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
+        mp.put(stations, station_format, [1])
+        mp.put(date_info, 'stations', stations)
+
+        om.put(tree, trip_date, date_info)
+ 
 
 def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
     """
@@ -451,6 +524,17 @@ def cmpcomponentes(numero1, numero2):
         return 1
     elif numero1 == me.getKey(numero2):
         return 0
+    else:
+        return -1
+
+def compareDates(date1, date2):
+    date_format1 = time.strptime(str(date1), "%m/%d/%Y")
+    date_format2 = time.strptime(str(date2), "%m/%d/%Y")
+
+    if (date_format1 == date_format2):
+        return 0
+    elif (date_format1 > date_format2):
+        return 1
     else:
         return -1
 
