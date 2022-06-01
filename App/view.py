@@ -51,10 +51,24 @@ def loadData():
     trips = controller.loadData(analyzer)
     return trips
 
-def optionFour(control):
+def optionOne(analyzer):
+    stations = controller.requirement1(analyzer)
+    for station in lt.iterator(stations):
+        station_id = station[0].split('-')[0]
+        station_name = station[0].split('-')[1]
+        outdegree = station[6]
+        suscribers_count = station[4]
+        tourist_count = station[3]
+        total_count = station[5]
+        hours = station[1]
+        dates = station[2]
+        print(f'id -> {station_id} | name -> {station_name} | out trips -> {total_count} | suscribers trips -> {suscribers_count} | tourist trips -> {tourist_count} |  outdegree -> {outdegree} | rush hour -> {hours[0], hours[1][0]} | rush date -> {dates[0], dates[1][0]}')
+
+
+def optionFour(analyzer):
     origin_station = input('Enter origin station: ') #York St / Lake Shore Blvd W
     arrival_station = input('Enter arrival station: ') #Davenport Rd / Avenue Rd
-    path = controller.requirement4(control, origin_station, arrival_station)
+    path = controller.requirement4(analyzer, origin_station, arrival_station)
     print(f'\nThe average time for the trip is {int(path[1])} minutes')
     for station in lt.iterator(path[0]):
         if station[0] != 0:
@@ -62,9 +76,9 @@ def optionFour(control):
         else:
             print(f'Last Station -> {station[1]}')
 
-def optionSix(control):
+def optionSix(analyzer):
     bike_id = int(float(input('Enter the bike id: '))) #25
-    bike = controller.requirement6(control, bike_id)
+    bike = controller.requirement6(analyzer, bike_id)
     print(f'\nTotal trips with the bike {bike_id}: {int(bike[0])}')
     print(f'Total time with the bike {bike_id}: {bike[1]}')
     print('\n----------------------------------------------------------------------------------\n')
@@ -118,7 +132,7 @@ while True:
         
 
     elif int(inputs[0]) == 1:
-        pass
+        optionOne(analyzer)
         
     elif int(inputs[0]) == 2:
         pass

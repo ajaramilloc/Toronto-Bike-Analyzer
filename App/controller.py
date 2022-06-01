@@ -37,7 +37,7 @@ def loadData(analyzer):
             count_3 += 1
         if trip['Start Station Name'] == trip['End Station Name']:
             count_4 += 1
-        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == '' or trip['Start Station Name'] == trip['End Station Name']):
+        if (trip['Trip  Duration'] == '') or (trip['Start Station Id'] == '') or (trip['End Station Id'] == '') or (trip['Trip  Duration'] == '0') or (trip['Bike Id'] == ''): #or (trip['Start Station Name'] == trip['End Station Name']):
             count_5 += 1
             pass
         else:
@@ -48,6 +48,8 @@ def loadData(analyzer):
     # Add edges weights
     model.addConnectionsDigraph(analyzer)
     model.addConnectionsGraph(analyzer)
+    # Unify out trips
+    model.unifyOutTrips(analyzer)
     # Unify bikes info
     model.unifyBikesInfo(analyzer)
     
@@ -59,6 +61,9 @@ def loadData(analyzer):
 
 def charge(analyzer):
     return model.charge(analyzer)
+
+def requirement1(analyzer):
+    return model.requirement1(analyzer)
 
 def requirement4(analyzer, origin_station, arrival_station):
     return model.requirement4(analyzer, origin_station, arrival_station)
