@@ -25,6 +25,7 @@ def newAnalyzer():
         'connections_graph': None,
         'stations_format_map': None,
         'stations_info': None,
+        'stations_date_time_info': None,
         'routes_average_map': None,
         'bikes_trips_map': None,
         'out_trips_tree': None,
@@ -38,6 +39,7 @@ def newAnalyzer():
     analyzer['connections_graph'] = gr.newGraph(datastructure='ADJ_LIST', directed=False, size=36000) # graph
     analyzer['stations_format_map'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['stations_info'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
+    analyzer['stations_date_time_info'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['routes_average_map'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['bikes_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
     analyzer['out_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
@@ -92,6 +94,12 @@ def addStop(analyzer, trip):
 
     addOutTrips(analyzer, origin_format, init_trip_date, init_trip_hour, trip)
 
+    if trip['User Type'] == 'Casual Member':
+
+        addDateTimeStationInfo(analyzer, origin_format, 'origin', init_trip_date_time)
+
+        addDateTimeStationInfo(analyzer, arrival_format, 'arrival', finish_trip_date_time)
+
     if trip['User Type'] == 'Annual Member':
         # Add out trip info by date
 
@@ -139,6 +147,54 @@ def addStationInfo(analyzer, station_format, condition):
         mp.put(station_info, 'arrival_count', arrival_count)
 
         mp.put(analyzer['stations_info'], station_format, station_info)
+
+def addDateTimeStationInfo(analyzer, station_format, condition, trip_date):
+    if mp.contains(analyzer['stations_date_time_info'], station_format):
+        dates_tree = me.getValue(mp.get(analyzer['stations_date_time_info'], station_format))
+
+        if om.contains(dates_tree, trip_date):
+            date_info = me.getValue(mp.get(dates_tree, trip_date))
+
+            if condition == 'origin':
+                origin_count = me.getValue(mp.get(date_info, 'origin_count'))
+                origin_count[0] += 1
+            elif condition == 'arrival':
+                arrival_count = me.getValue(mp.get(date_info, 'arrival_count'))
+                arrival_count[0] += 1
+        
+        else:
+            date_info = mp.newMap(maptype='PROBING', loadfactor=0.5)
+
+            if condition == 'origin':
+                origin_count = [1]
+                arrival_count = [0]
+            elif condition == 'arrival':
+                origin_count = [0]
+                arrival_count = [1]
+            
+            mp.put(date_info, 'origin_count', origin_count)
+            mp.put(date_info, 'arrival_count', arrival_count)
+
+            om.put(dates_tree, trip_date, date_info)
+
+    else:
+        dates_tree = om.newMap(omaptype='RBT', comparefunction=compareDatesTime)
+
+        date_info = mp.newMap(maptype='PROBING', loadfactor=0.5)
+
+        if condition == 'origin':
+            origin_count = [1]
+            arrival_count = [0]
+        elif condition == 'arrival':
+            origin_count = [0]
+            arrival_count = [1]
+        
+        mp.put(date_info, 'origin_count', origin_count)
+        mp.put(date_info, 'arrival_count', arrival_count)
+
+        om.put(dates_tree, trip_date, date_info)
+
+        mp.put(analyzer['stations_date_time_info'], station_format, dates_tree)
             
 def addStationDigraph(analyzer, station_format):
     """
@@ -837,3 +893,17 @@ def requirement6(analyzer, bike_id):
     max_arrival_stations = om.get(arrival_stations, max_arrival)
 
     return num_trips, total_duration, max_origin_stations, max_arrival_stations
+
+def requirement7(analyzer, init_date, finish_date, station):
+    station_format = me.getValue(mp.get(analyzer['stations_format_map'], station))
+    station_info = me.getValue(mp.get(analyzer['stations_date_time_info'], station_format))
+    interval = om.values(station_info, init_date, finish_date)
+    total_origin = 0
+    total_arrival = 0
+    for date in lt.iterator(interval):
+        origin_count = me.getValue(mp.get(date, 'origin_count'))[0]
+        total_origin += origin_count
+        arrival_count = me.getValue(mp.get(date, 'arrival_count'))[0]
+        total_arrival += arrival_count
+
+    print(total_arrival, total_origin)

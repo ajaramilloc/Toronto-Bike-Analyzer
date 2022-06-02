@@ -78,3 +78,6 @@ def requirement5(analyzer, init_date, finish_date):
 
 def requirement6(analyzer, bike_id):
     return model.requirement6(analyzer, bike_id)
+
+def requirement7(analyzer, init_date, finish_date, station):
+    return model.requirement7(analyzer, init_date, finish_date, station)

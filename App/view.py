@@ -203,6 +203,12 @@ def optionSix(analyzer):
         print(f'Arrival station -> {station} / Number trips -> {num_arrival}')
     print('\n----------------------------------------------------------------------------------\n')
 
+def optionSeven(analyzer):
+    init_date = input('Enter the initial date: ')
+    finish_date = input('Enter the finish date: ')
+    station = input('Enter station: ')
+    interval = controller.requirement7(analyzer, init_date, finish_date, station)
+
 # -----------------------------------------------------
 # MENU
 # -----------------------------------------------------
@@ -263,7 +269,7 @@ while True:
         optionSix(analyzer)
     
     elif int(inputs[0]) == 7:
-        pass
+        optionSeven(analyzer)
         
     else:
         sys.exit(0)
