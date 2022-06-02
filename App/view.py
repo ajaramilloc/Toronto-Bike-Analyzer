@@ -209,10 +209,15 @@ def optionSeven(analyzer):
     station = input('Enter station: ')
     interval = controller.requirement7(analyzer, init_date, finish_date, station)
     total_origin = interval[0]
-    totoal_arrival = interval[1]
+    total_arrival = interval[1]
+    arrival_station = interval[2]
+    trip = interval[3]
 
-    print(f'\n There are {total_origin} out trips from {station} between {init_date} - {finish_date}')
-    print(f'There are {totoal_arrival} in trips from {station} between {init_date} - {finish_date}\n')
+    print(f'\nThere are {total_origin} out trips from {station} between {init_date} - {finish_date}')
+    print(f'There are {total_arrival} in trips from {station} between {init_date} - {finish_date}\n')
+
+    print(f'The station with more arrivals from {station} is {arrival_station[1]} with {arrival_station[0]} trips')
+    print(f'The trip with more duration from {station} is {trip[1]} - {trip[2]} with a journey of {trip[0]}')
 
 # -----------------------------------------------------
 # MENU

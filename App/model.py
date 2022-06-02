@@ -929,16 +929,41 @@ def requirement6(analyzer, bike_id):
     return num_trips, total_duration, max_origin_stations, max_arrival_stations
 
 def requirement7(analyzer, init_date, finish_date, station):
+    graph = analyzer['connections_digraph']
     station_format = me.getValue(mp.get(analyzer['stations_format_map'], station))
     station_info = me.getValue(mp.get(analyzer['stations_date_time_info'], station_format))
     interval = om.values(station_info, init_date, finish_date)
     total_origin = 0
     total_arrival = 0
+    total_arrival_stations = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
+    arrival_stations_tree = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+    arrival_trips = om.newMap(omaptype='RBT', comparefunction=cmpTreeElements)
+
     for date in lt.iterator(interval):
         origin_count = me.getValue(mp.get(date, 'origin_count'))[0]
         total_origin += origin_count
         arrival_count = me.getValue(mp.get(date, 'arrival_count'))[0]
         total_arrival += arrival_count
-        print(mp.get(date, 'arrival_stations'))
+        if mp.contains(date, 'arrival_stations'):
+            arrival_stations_map = me.getValue(mp.get(date, 'arrival_stations'))
+            arrival_stations = mp.keySet(me.getValue(mp.get(date, 'arrival_stations')))
+            for station in lt.iterator(arrival_stations):
+                station_count = me.getValue(mp.get(arrival_stations_map, station))[0]
+                if mp.contains(total_arrival_stations, station):
+                    station_info = me.getValue(mp.get(total_arrival_stations, station))[0]
+                    station_info += station_count
+                else:
+                    mp.put(total_arrival_stations, station, station_count)
 
-    return total_origin, total_arrival
+    unified_arrival_station = mp.keySet(total_arrival_stations)
+    for station in lt.iterator(unified_arrival_station):
+        station_value = me.getValue(mp.get(total_arrival_stations, station))
+        om.put(arrival_stations_tree, station_value, station)
+        station_duration = gr.getEdge(graph, station_format, station)
+        station_duration_total = station_duration['weight']
+        om.put(arrival_trips, station_duration_total, station)
+        
+
+    max_arrival_station = me.getValue(om.get(arrival_stations_tree, om.maxKey(arrival_stations_tree)))
+    max_trip = me.getValue(om.get(arrival_trips, om.maxKey(arrival_trips)))
+    return total_origin, total_arrival, [om.maxKey(arrival_stations_tree), max_arrival_station], [om.maxKey(arrival_trips), station_format, max_trip]
