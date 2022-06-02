@@ -64,8 +64,8 @@ def charge(analyzer):
 def requirement1(analyzer):
     return model.requirement1(analyzer)
 
-def requirement2(analyzer, origin_station):
-    return model.requirement2(analyzer, origin_station)
+def requirement2(analyzer, origin_station, max_time, min_stations, max_routes):
+    return model.requirement2(analyzer, origin_station, max_time, min_stations, max_routes)
 
 def requirement3(analyzer):
     return model.requirement3(analyzer)
