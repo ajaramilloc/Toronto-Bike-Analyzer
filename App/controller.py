@@ -23,6 +23,7 @@ def newController():
 def loadData(analyzer):
     trips_file = cf.data_dir + 'Bikeshare/Bikeshare-ridership-2021-utf8-small.csv'
     input_file = csv.DictReader(open(trips_file, encoding='utf-8'))
+    trips = lt.newList('ARRAY_LIST')
     count_1 = 0
     count_2 = 0
     count_3 = 0
@@ -43,16 +44,15 @@ def loadData(analyzer):
             # Add Station Info
             model.addStop(analyzer, trip)
             count_2 += 1
-
+            lt.addLast(trips, trip)
     # Add edges weights
     model.addConnectionsDigraph(analyzer)
-    model.addConnectionsGraph(analyzer)
     # Unify out trips
     model.unifyOutTrips(analyzer)
     # Unify bikes info
     model.unifyBikesInfo(analyzer)
     
-    return(count_1, count_2, count_3, count_4, count_5)
+    return(count_1, count_2, count_3, count_4, count_5, trips)
 
 # -----------------------------------------------------
 # REQUIREMENTS FUNCTIONS
@@ -64,8 +64,8 @@ def charge(analyzer):
 def requirement1(analyzer):
     return model.requirement1(analyzer)
 
-def requirement2(analyzer, origin_station, max_time, min_stations, max_routes):
-    return model.requirement2(analyzer, origin_station, max_time, min_stations, max_routes)
+def requirement2(analyzer, origin_station):
+    return model.requirement2(analyzer, origin_station)
 
 def requirement3(analyzer):
     return model.requirement3(analyzer)

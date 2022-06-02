@@ -231,13 +231,18 @@ while True:
         print(f'There are {charge[0]} vertices')
         print(f'There are {charge[1]} edges')
         print('-----------------------------------------------------------------------------\n')
-        print(f'Graph Info:')
-        print(f'There are {charge[2]} vertices')
-        print(f'There are {charge[3]} edges')
-        print('-----------------------------------------------------------------------------\n')
+    
 
-        #for station in lt.iterator(charge[4]):
-          #  print(station)
+        for station in lt.iterator(charge[4]):
+          station_id = station['station_id']
+          station_name = station['station_name']
+          station_indegree = station['indegree']
+          station_outdegree = station['outdegree']
+          station_out = station['out_trips']
+          station_in = station['in_trips']
+          print(f'Station Id: {station_id} | Station Name: {station_name} | Indegree: {station_indegree} | Outdegree: {station_outdegree} | In Trips: {station_in} | Out Trips: {station_out}')
+
+        print('----------------------------------------------------------------------------\n')
         
     elif int(inputs[0]) == 1:
         optionOne(analyzer)

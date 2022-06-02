@@ -73,10 +73,6 @@ def addStop(analyzer, trip):
     addStationDigraph(analyzer, origin_format)
     addStationDigraph(analyzer, arrival_format)
 
-    # Add station to the graph
-    addStationGraph(analyzer, origin_format)
-    addStationGraph(analyzer, arrival_format)
-
     # Add station format in station names map
 
     addStationFormat(analyzer, trip['Start Station Name'], origin_format)
@@ -85,6 +81,12 @@ def addStop(analyzer, trip):
     # Calculates route average
 
     addRoutesAverage(analyzer, origin_format, arrival_format, trip)
+
+    # Add station info
+
+    addStationInfo(analyzer, origin_format, 'origin')
+
+    addStationInfo(analyzer, arrival_format, 'arrival')
 
     # Add out trip info
 
@@ -113,20 +115,37 @@ def addStop(analyzer, trip):
 # ADD INFO FUNCTIONS
 # -----------------------------------------------------
 
-    
+def addStationInfo(analyzer, station_format, condition):
+    if mp.contains(analyzer['stations_info'], station_format):
+        station_info = me.getValue(mp.get(analyzer['stations_info'], station_format))
+
+        if condition == 'origin':
+            origin_count = me.getValue(mp.get(station_info, 'origin_count'))
+            origin_count[0] += 1
+        elif condition == 'arrival':
+            arrival_count = me.getValue(mp.get(station_info, 'arrival_count'))
+            arrival_count[0] += 1
+
+    else:
+        station_info = mp.newMap(2, maptype='PROBING', loadfactor=0.5)
+        if condition == 'origin':
+            origin_count = [1]
+            arrival_count = [0]
+        elif condition == 'arrival':
+            origin_count = [0]
+            arrival_count = [1]
+        
+        mp.put(station_info, 'origin_count', origin_count)
+        mp.put(station_info, 'arrival_count', arrival_count)
+
+        mp.put(analyzer['stations_info'], station_format, station_info)
+            
 def addStationDigraph(analyzer, station_format):
     """
     Add a vertex to the digraph
     """
     if not gr.containsVertex(analyzer['connections_digraph'], station_format):
         gr.insertVertex(analyzer['connections_digraph'], station_format)
-
-def addStationGraph(analyzer, station_format):
-    """
-    Add a vertex to the graph
-    """
-    if not gr.containsVertex(analyzer['connections_graph'], station_format):
-        gr.insertVertex(analyzer['connections_graph'], station_format)
 
 def addStationFormat(analyzer, station_name, station_format):
     """
@@ -330,11 +349,6 @@ def addBikeInfo(analyzer, bike_id, trip, origin_format, arrival_format):
 
         mp.put(analyzer['bikes_trips_map'], bike_id, bike)
 
-def addTripsByDateTime(analyzer, station_format, trip_date_time):
-    if mp.contains(analyzer['stations_info'], station_format):
-        pass
-    else:
-        station_info = mp.newMap(3, maptype='PROBING')
 # -----------------------------------------------------
 # UNIFY FUNCTIONS
 # -----------------------------------------------------
@@ -350,25 +364,6 @@ def addConnectionsDigraph(analyzer):
         for arrival_station in lt.iterator(arrival_stations):
             trip_info = me.getValue(mp.get(arrival_table, arrival_station))
             gr.addEdge(analyzer['connections_digraph'], origin_station, arrival_station, trip_info[0])
-
-def addConnectionsGraph(analyzer):
-    """
-    Add the weigth (average duration) to each edge
-    """
-    origin_stations = mp.keySet(analyzer['routes_average_map'])
-    for origin_station in lt.iterator(origin_stations):
-        arrival_table = me.getValue(mp.get(analyzer['routes_average_map'], origin_station))
-        arrival_stations = mp.keySet(arrival_table)
-        for arrival_station in lt.iterator(arrival_stations):
-            tripA = getEdge(analyzer['connections_digraph'], origin_station, arrival_station)
-            tripB = getEdge(analyzer['connections_digraph'], arrival_station, origin_station)
-            if tripA != None and tripB != None:
-                if tripA['weight'] > tripB['weight']:
-                    gr.addEdge(analyzer['connections_graph'], origin_station, arrival_station, tripA['weight'])
-                elif tripA['weight'] < tripB['weight']:
-                    gr.addEdge(analyzer['connections_graph'], origin_station, arrival_station, tripB['weight'])
-                elif tripA['weight'] == tripB['weight']:
-                    gr.addEdge(analyzer['connections_graph'], origin_station, arrival_station, tripA['weight'])
 
 def unifyOutTrips(analyzer):
     stations = mp.keySet(analyzer['out_trips_map'])
@@ -569,31 +564,35 @@ def charge(analyzer):
     first_3 = lt.subList(vertices, 1, 3)
     last_3 = lt.subList(vertices, size-3, 3)
     total_vertices = lt.newList('ARRAY_LIST')
+    stations_info = analyzer['stations_info']
     for first_station in lt.iterator(first_3):
-        station_id = first_station
-        station_name = first_station
-        print(first_station)
+        station_id = first_station.split('-')[0]
+        station_name = first_station.split('-')[1]
+        station_info = me.getValue(mp.get(stations_info, first_station))
+        out_trips = me.getValue(mp.get(station_info, 'origin_count'))[0]
+        in_trips = me.getValue(mp.get(station_info, 'arrival_count'))[0]
         try:
             station_indegree = gr.indegree(analyzer['connections_digraph'], first_station)
             station_outdegree = gr.outdegree(analyzer['connections_digraph'], first_station)
         except Exception:
             station_indegree = 0
             station_outdegree = 0
-            print(first_station)
-
-        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree}
+        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree, 'out_trips': out_trips, 'in_trips': in_trips}
         lt.addLast(total_vertices, format_first_station)
 
     for last_station in lt.iterator(last_3):
-        station_id = last_station
-        station_name = last_station
+        station_id = last_station.split('-')[0]
+        station_name = last_station.split('-')[1]
+        station_info = me.getValue(mp.get(stations_info, last_station))
+        out_trips = me.getValue(mp.get(station_info, 'origin_count'))[0]
+        in_trips = me.getValue(mp.get(station_info, 'arrival_count'))[0]
         try:
             station_indegree = gr.indegree(analyzer['connections_digraph'], last_station)
             station_outdegree = gr.outdegree(analyzer['connections_digraph'], last_station)
         except Exception:
             station_indegree = 0
             station_outdegree = 0
-        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree}
+        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree, 'out_trips': out_trips, 'in_trips': in_trips}
         lt.addLast(total_vertices, format_first_station)
     
     digraph = analyzer['connections_digraph']
