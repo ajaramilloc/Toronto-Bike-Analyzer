@@ -208,6 +208,11 @@ def optionSeven(analyzer):
     finish_date = input('Enter the finish date: ')
     station = input('Enter station: ')
     interval = controller.requirement7(analyzer, init_date, finish_date, station)
+    total_origin = interval[0]
+    totoal_arrival = interval[1]
+
+    print(f'\n There are {total_origin} out trips from {station} between {init_date} - {finish_date}')
+    print(f'There are {totoal_arrival} in trips from {station} between {init_date} - {finish_date}\n')
 
 # -----------------------------------------------------
 # MENU

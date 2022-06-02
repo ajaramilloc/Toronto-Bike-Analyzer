@@ -906,4 +906,4 @@ def requirement7(analyzer, init_date, finish_date, station):
         arrival_count = me.getValue(mp.get(date, 'arrival_count'))[0]
         total_arrival += arrival_count
 
-    print(total_arrival, total_origin)
+    return total_origin, total_arrival
