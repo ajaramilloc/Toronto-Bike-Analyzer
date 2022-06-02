@@ -92,11 +92,7 @@ def optionTwo(analyzer):
         print('---------------------------------------------------------------------------------------------------------')
 
 def optionThree(control):
-    lista_componentes_conectados = controller.requirement3(control) 
-    print(lista_componentes_conectados)
-    numero_componentes_conectados = lt.size(lista_componentes_conectados)
-    print("El número total de componentes fuertemente conectados es: ", numero_componentes_conectados)
-    if numero_componentes_conectados < 6:
+    def printReq3(lista_componentes_conectados):
         for componente in lt.iterator(lista_componentes_conectados):
             numero_estaciones = componente[0]
             viajes_inician = componente[1]
@@ -111,45 +107,31 @@ def optionThree(control):
             print("ID: ", viajes_terminan[0])
             print("Nombre: ", viajes_terminan[1])
             print('--------------------------------------------------------------------------------------------------')
+            
+    lista_componentes_conectados = controller.requirement3(control) 
+    numero_componentes_conectados = lt.size(lista_componentes_conectados)
+    print("There are", numero_componentes_conectados, "Strongly Connected Componentes (SCC) in the graph.")
+    print('--------------------------------------------------------------------------------------------------')
 
+    if numero_componentes_conectados < 6:
+        printReq3(lista_componentes_conectados)
     else: 
-        lista_primeros3 = lt.subList(lista_componentes_conectados,1,3)
+        lista_primeros3 = lt.newList('ARRAY_LIST')
         lista_ultimos3 = lt.newList('ARRAY_LIST')
         for pos in range(1, numero_componentes_conectados):
+            if pos > 3:
+                pass
+            else:
+                firstcomponent = lt.getElement(lista_componentes_conectados, pos)
+                lt.addLast(lista_primeros3, firstcomponent)
             if pos < numero_componentes_conectados - 3:
                 pass
             else:
-                component = lt.getElement(lista_componentes_conectados, pos)
-                lt.addLast(lista_ultimos3, component)
-
-        for componente in lt.iterator(lista_primeros3):
-            numero_estaciones = componente[0]
-            viajes_inician = componente[1]
-            viajes_inician = viajes_inician.split('-')
-            viajes_terminan = componente[2]
-            viajes_terminan = viajes_terminan.split('-')
-            print("El número de estaciones del componente es :", numero_estaciones)
-            print("El ID y el nombre de la estación donde más viajes inician es: ")
-            print("ID: ", viajes_inician[0])
-            print("Nombre: ", viajes_inician[1])
-            print("El ID y el nombre de la estación donde más viajes terminan es: ")
-            print("ID: ", viajes_terminan[0])
-            print("Nombre: ", viajes_terminan[1])
-            print('--------------------------------------------------------------------------------------------------')
-        for componente in lt.iterator(lista_ultimos3):
-            numero_estaciones = componente[0]
-            viajes_inician = componente[1]
-            viajes_inician = viajes_inician.split('-')
-            viajes_terminan = componente[2]
-            viajes_terminan = viajes_terminan.split('-')
-            print("El número de estaciones del componente es :", numero_estaciones)
-            print("El ID y el nombre de la estación donde más viajes inician es: ")
-            print("ID: ", viajes_inician[0])
-            print("Nombre: ", viajes_inician[1])
-            print("El ID y el nombre de la estación donde más viajes terminan es: ")
-            print("ID: ", viajes_terminan[0])
-            print("Nombre: ", viajes_terminan[1])
-            print('--------------------------------------------------------------------------------------------------')
+                lastcomponent = lt.getElement(lista_componentes_conectados, pos)
+                lt.addLast(lista_ultimos3, lastcomponent)
+        print("The first 3 and last 3 of the SCC are:")
+        printReq3(lista_primeros3)
+        printReq3(lista_ultimos3)
         
 
 def optionFour(analyzer):
