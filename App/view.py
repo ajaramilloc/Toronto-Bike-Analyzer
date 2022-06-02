@@ -66,7 +66,15 @@ def optionOne(analyzer):
 
 def optionTwo(analyzer):
     origin_station = input('Enter origin station: ')
-    routes = controller.requirement2(analyzer, origin_station)
+    max_time = int(input('Enter max time: '))
+    min_stations = int(input('Enter min stations: '))
+    max_routes = int(input('Enter max routes: '))
+    routes = controller.requirement2(analyzer, origin_station, max_time, min_stations, max_routes)
+    total_routes = routes[0]
+    user_routes = routes[1]
+    print(f'\nIn total are {total_routes} posible routes\n')
+    for route in lt.iterator(user_routes):
+        print(route)
 
 def optionThree(control):
     lista_componentes_conectados = controller.requirement3(control) 
@@ -230,8 +238,10 @@ while True:
         print(f'There are {charge[2]} vertices')
         print(f'There are {charge[3]} edges')
         print('-----------------------------------------------------------------------------\n')
-        
 
+        #for station in lt.iterator(charge[4]):
+          #  print(station)
+        
     elif int(inputs[0]) == 1:
         optionOne(analyzer)
         

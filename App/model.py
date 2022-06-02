@@ -11,6 +11,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import orderedmap as om
 from DISClib.Algorithms.Sorting import mergesort as merge
 import time
+import math
 assert cf
 
 # -----------------------------------------------------
@@ -497,13 +498,6 @@ def getEdge(graph, vertexA, vertexB):
     except Exception:
         return None
 
-def minimumCostPaths(analyzer, origin_format):
-    analyzer['paths'] = djk.Dijkstra(analyzer['connections_digraph'], origin_format)
-
-def minimumCostPath(analyzer, arrival_station):
-    path = djk.pathTo(analyzer['paths'], arrival_station)
-    return path
-
 def sortList(list, cmp_function):
     return merge.sort(list, cmp_function)
 
@@ -570,6 +564,38 @@ def compareDatesTime(date1, date2):
 # -----------------------------------------------------
 
 def charge(analyzer):
+    vertices = gr.vertices(analyzer['connections_digraph'])
+    size = lt.size(vertices)
+    first_3 = lt.subList(vertices, 1, 3)
+    last_3 = lt.subList(vertices, size-3, 3)
+    total_vertices = lt.newList('ARRAY_LIST')
+    for first_station in lt.iterator(first_3):
+        station_id = first_station
+        station_name = first_station
+        print(first_station)
+        try:
+            station_indegree = gr.indegree(analyzer['connections_digraph'], first_station)
+            station_outdegree = gr.outdegree(analyzer['connections_digraph'], first_station)
+        except Exception:
+            station_indegree = 0
+            station_outdegree = 0
+            print(first_station)
+
+        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree}
+        lt.addLast(total_vertices, format_first_station)
+
+    for last_station in lt.iterator(last_3):
+        station_id = last_station
+        station_name = last_station
+        try:
+            station_indegree = gr.indegree(analyzer['connections_digraph'], last_station)
+            station_outdegree = gr.outdegree(analyzer['connections_digraph'], last_station)
+        except Exception:
+            station_indegree = 0
+            station_outdegree = 0
+        format_first_station = {'station_id': station_id, 'station_name': station_name, 'indegree': station_indegree, 'outdegree': station_outdegree}
+        lt.addLast(total_vertices, format_first_station)
+    
     digraph = analyzer['connections_digraph']
     num_vertices_digraph = gr.numVertices(digraph)
     num_edges_digraph = gr.numEdges(digraph)
@@ -578,7 +604,7 @@ def charge(analyzer):
     num_vertices_graph = gr.numVertices(graph)
     num_edges_graph = gr.numEdges(graph)
 
-    return num_vertices_digraph, num_edges_digraph, num_vertices_graph, num_edges_graph
+    return num_vertices_digraph, num_edges_digraph, num_vertices_graph, num_edges_graph, total_vertices
 
 def requirement1(analyzer):
     graph = analyzer['connections_digraph']
@@ -605,11 +631,26 @@ def requirement1(analyzer):
     first_five_stations = lt.subList(stations_list, 1, 5)
     return first_five_stations
 
-def requirement2(analyzer, origin_station):
+def requirement2(analyzer, origin_station, max_time, min_stations, max_routes):
     origin_format = me.getValue(mp.get(analyzer['stations_format_map'], origin_station))
-    analyzer['routes'] = prim.PrimMST(analyzer['connections_graph'], origin_format)
-    routes = analyzer['routes']['mst']
-    print(routes)
+    dijkstra = djk.Dijkstra(analyzer['connections_digraph'], origin_format)
+    stations = mp.keySet(dijkstra['visited'])
+    max_one_trip_duration = max_time / 2
+    routes_list_distance = lt.newList('ARRAY_LIST')
+    routes_list = lt.newList('ARRAY_LIST')
+    for station in lt.iterator(stations):
+        distance = djk.distTo(dijkstra, station)
+        if distance != math.inf and distance <= max_one_trip_duration:
+            route = djk.pathTo(dijkstra, station)
+            lt.addLast(routes_list_distance, route)
+
+    for stop in lt.iterator(routes_list_distance):
+        route_size = stack.size(stop)
+        if route_size >= min_stations:
+            lt.addLast(routes_list, stop)
+            
+    user_routes = lt.subList(routes_list, 1, max_routes)
+    return lt.size(routes_list), user_routes
 
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections_digraph'])
@@ -662,8 +703,18 @@ def requirement3(analyzer):
     return lista_sorteada
 
 def requirement4(analyzer, origin_station, arrival_station):
+    # -------------------------------------------------------------------------------------- #
+    def minimumCostPaths(analyzer, origin_format):
+        analyzer['paths'] = djk.Dijkstra(analyzer['connections_digraph'], origin_format)
+
+    def minimumCostPath(analyzer, arrival_station):
+        path = djk.pathTo(analyzer['paths'], arrival_station)
+        return path
+    # -------------------------------------------------------------------------------------- #
+    
     origin_format = me.getValue(mp.get(analyzer['stations_format_map'], origin_station))
     arrival_format = me.getValue(mp.get(analyzer['stations_format_map'], arrival_station))
+
     minimumCostPaths(analyzer, origin_format)
     path = minimumCostPath(analyzer, arrival_format)
     list_path = lt.newList('ARRAY_LIST')
