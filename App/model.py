@@ -29,6 +29,7 @@ def newAnalyzer():
         'routes_average_map': None,
         'bikes_trips_map': None,
         'out_trips_tree': None,
+        'in_trips_tree': None,
         'date_out_trips_tree': None,
         'date_in_trips_tree': None,
         'dates_tree': None
@@ -43,6 +44,7 @@ def newAnalyzer():
     analyzer['routes_average_map'] = mp.newMap(708, maptype='PROBING', loadfactor=0.5) # map
     analyzer['bikes_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
     analyzer['out_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
+    analyzer['in_trips_map'] = mp.newMap(15, maptype='PROBING', loadfactor=0.5) # map
     analyzer['date_out_trips_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
     analyzer['date_in_trips_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
     analyzer['dates_tree'] = om.newMap(omaptype='RBT', comparefunction=compareDates) # tree
@@ -96,9 +98,9 @@ def addStop(analyzer, trip):
 
     if trip['User Type'] == 'Casual Member':
 
-        addDateTimeStationInfo(analyzer, origin_format, 'origin', init_trip_date_time)
+        addDateTimeStationInfo(analyzer, origin_format, 'origin', init_trip_date_time, arrival_format)
 
-        addDateTimeStationInfo(analyzer, arrival_format, 'arrival', finish_trip_date_time)
+        addDateTimeStationInfo(analyzer, arrival_format, 'arrival', finish_trip_date_time, None)
 
     if trip['User Type'] == 'Annual Member':
         # Add out trip info by date
@@ -148,7 +150,7 @@ def addStationInfo(analyzer, station_format, condition):
 
         mp.put(analyzer['stations_info'], station_format, station_info)
 
-def addDateTimeStationInfo(analyzer, station_format, condition, trip_date):
+def addDateTimeStationInfo(analyzer, station_format, condition, trip_date, arrival_format):
     if mp.contains(analyzer['stations_date_time_info'], station_format):
         dates_tree = me.getValue(mp.get(analyzer['stations_date_time_info'], station_format))
 
@@ -161,6 +163,22 @@ def addDateTimeStationInfo(analyzer, station_format, condition, trip_date):
             elif condition == 'arrival':
                 arrival_count = me.getValue(mp.get(date_info, 'arrival_count'))
                 arrival_count[0] += 1
+
+            if arrival_format == None:
+                pass
+            else:
+                if mp.contains(date_info, 'arrival_stations'):
+                    arrival_stations = me.getValue(mp.get(date_info, 'arrival_stations'))
+                    if mp.contains(arrival_stations, arrival_format):
+                        arrival_station = me.getValue(mp.get(arrival_stations, arrival_format))[0]
+                        arrival_station += 1
+                    else:
+                        mp.put(arrival_stations, arrival_format, [1])
+                else:
+                    arrival_stations = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
+                    mp.put(arrival_stations, arrival_format, [1])
+
+                    mp.put(date_info, 'arrival_stations', arrival_stations)
         
         else:
             date_info = mp.newMap(maptype='PROBING', loadfactor=0.5)
@@ -177,6 +195,14 @@ def addDateTimeStationInfo(analyzer, station_format, condition, trip_date):
 
             om.put(dates_tree, trip_date, date_info)
 
+            if arrival_format == None:
+                pass
+            else:
+                arrival_stations = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
+                mp.put(arrival_stations, arrival_format, [1])
+
+                mp.put(date_info, 'arrival_stations', arrival_stations)
+
     else:
         dates_tree = om.newMap(omaptype='RBT', comparefunction=compareDatesTime)
 
@@ -191,6 +217,14 @@ def addDateTimeStationInfo(analyzer, station_format, condition, trip_date):
         
         mp.put(date_info, 'origin_count', origin_count)
         mp.put(date_info, 'arrival_count', arrival_count)
+
+        if arrival_format == None:
+            pass
+        else:
+            arrival_stations = mp.newMap(1, maptype='PROBING', loadfactor=0.5)
+            mp.put(arrival_stations, arrival_format, [1])
+
+            mp.put(date_info, 'arrival_stations', arrival_stations)
 
         om.put(dates_tree, trip_date, date_info)
 
@@ -905,5 +939,6 @@ def requirement7(analyzer, init_date, finish_date, station):
         total_origin += origin_count
         arrival_count = me.getValue(mp.get(date, 'arrival_count'))[0]
         total_arrival += arrival_count
+        print(mp.get(date, 'arrival_stations'))
 
     return total_origin, total_arrival
