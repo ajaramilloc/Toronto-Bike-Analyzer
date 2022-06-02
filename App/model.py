@@ -641,8 +641,8 @@ def requirement2(analyzer, origin_station, max_time, min_stations, max_routes):
     for station in lt.iterator(stations):
         distance = djk.distTo(dijkstra, station)
         if distance != math.inf and distance <= max_one_trip_duration:
-            route = djk.pathTo(dijkstra, station)
-            lt.addLast(routes_list_distance, route)
+            posible_route = djk.pathTo(dijkstra, station)
+            lt.addLast(routes_list_distance, posible_route)
 
     for stop in lt.iterator(routes_list_distance):
         route_size = stack.size(stop)
@@ -650,7 +650,19 @@ def requirement2(analyzer, origin_station, max_time, min_stations, max_routes):
             lt.addLast(routes_list, stop)
             
     user_routes = lt.subList(routes_list, 1, max_routes)
-    return lt.size(routes_list), user_routes
+
+    list_paths = lt.newList('ARRAY_LIST')
+    for route in lt.iterator(user_routes):
+        list_path = lt.newList('ARRAY_LIST')
+        time_count = 0
+        while (not stack.isEmpty(route)):
+            stop = stack.pop(route)
+            station_info = (stop['weight'], stop['vertexA'], stop['vertexB'])
+            lt.addLast(list_path, station_info)
+            time_count += stop['weight']
+        path_info = [time_count, list_path]
+        lt.addLast(list_paths, path_info)
+    return lt.size(routes_list), list_paths
 
 def requirement3(analyzer):
     analyzer['components'] = scc.KosarajuSCC(analyzer['connections_digraph'])

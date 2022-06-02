@@ -1,4 +1,5 @@
-﻿import config as cf
+﻿from mimetypes import init
+import config as cf
 import sys
 import controller
 import time
@@ -72,9 +73,23 @@ def optionTwo(analyzer):
     routes = controller.requirement2(analyzer, origin_station, max_time, min_stations, max_routes)
     total_routes = routes[0]
     user_routes = routes[1]
-    print(f'\nIn total are {total_routes} posible routes\n')
-    for route in lt.iterator(user_routes):
-        print(route)
+
+    print(f'\nThere are in total {total_routes} routes\n')
+
+    for path in lt.iterator(user_routes):
+        path_duration = path[0]
+        print(f'\n The trip duration is: {path_duration}')
+        print(f'\n The round trip duration is: {path_duration * 2}')
+        path_stations = path[1]
+        path_len = lt.size(path[1]) + 1
+        print(f'\n The trip len is: {path_len}\n')
+        for station in lt.iterator(path_stations):
+            init_station = station[1]
+            finish_station = station[2]
+            weigth = station[0]
+            print(f'Init Station: {init_station} | Time for next station: {weigth} | Next Station: {finish_station}')
+
+        print('---------------------------------------------------------------------------------------------------------')
 
 def optionThree(control):
     lista_componentes_conectados = controller.requirement3(control) 
